@@ -305,6 +305,134 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  // --- TRADUCCIÓN DE SINOPSIS AL ESPAÑOL ---
+  const setSpanishDescription = (rawDescriptionHtml, gameName) => {
+    if (!gameDescription) return;
+    
+    if (!rawDescriptionHtml) {
+      gameDescription.innerHTML = `<p class="text-gray-500 italic">No se encuentra disponible la sinopsis para este juego.</p>`;
+      return;
+    }
+
+    // Si la API key de Gemini está configurada, la usamos para traducir de forma perfecta todo el HTML
+    if (GEMINI_KEY && GEMINI_KEY !== "TU_API_KEY_AQUI" && GEMINI_KEY.trim() !== "") {
+      gameDescription.innerHTML = `<p class="text-xs text-fuchsia-400 font-semibold uppercase tracking-wider animate-pulse flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-ping"></span> Traduciendo sinopsis con Inteligencia Artificial...</p>`;
+      
+      const prompt = `Actúas como traductor experto para GamerDex. Traduce el siguiente contenido HTML sobre el videojuego "${gameName}" del inglés al español. Conserva exactamente las mismas etiquetas HTML en tu respuesta (como <p>, <br>, <h3>, etc.) y solo traduce el texto interno. No agregues bloques de código de markdown (\`\`\`), ni introducciones, ni comentarios. Solo devuelve el código HTML traducido.\n\nContenido a traducir:\n${rawDescriptionHtml}`;
+
+      const requestBody = {
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }]
+      };
+
+      fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      })
+        .then(res => {
+          if (!res.ok) throw new Error("Fallo en Gemini");
+          return res.json();
+        })
+        .then(data => {
+          if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0]) {
+            let translatedHtml = data.candidates[0].content.parts[0].text;
+            // Limpiar posibles bloques de código que la IA a veces agrega por error
+            translatedHtml = translatedHtml.replace(/^```html\s*/i, '').replace(/```$/, '').trim();
+            gameDescription.innerHTML = translatedHtml;
+          } else {
+            throw new Error("Estructura inválida");
+          }
+        })
+        .catch(err => {
+          console.error("Error al traducir descripción con Gemini, usando fallback de texto plano:", err);
+          translateWithFallback(rawDescriptionHtml);
+        });
+    } else {
+      // Si no hay key de Gemini, usamos el fallback
+      translateWithFallback(rawDescriptionHtml);
+    }
+  };
+
+  const translateWithFallback = (rawDescriptionHtml) => {
+    // Extraer texto plano
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = rawDescriptionHtml;
+    const plainText = tempDiv.textContent || tempDiv.innerText || "";
+    
+    // Limitar el tamaño a traducir a unos 300 caracteres (límite seguro para MyMemory)
+    const textToTranslate = plainText.substring(0, 300).trim();
+    console.log("GAMERDEX DEBUG: textToTranslate =", textToTranslate);
+    console.log("GAMERDEX DEBUG: longitud =", textToTranslate.length);
+    if (!textToTranslate) {
+      gameDescription.innerHTML = rawDescriptionHtml;
+      return;
+    }
+
+    gameDescription.innerHTML = `<p class="text-xs text-sky-400 font-semibold uppercase tracking-wider animate-pulse flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-ping"></span> Traduciendo sinopsis al español...</p>`;
+
+    const targetUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=en|es`;
+
+    fetch(targetUrl)
+      .then(res => {
+        if (!res.ok) throw new Error("Fallo de conexión en MyMemory");
+        return res.json();
+      })
+      .then(data => {
+        // Validar si MyMemory devolvió un error en la respuesta (por ejemplo, límite de longitud)
+        if (data.responseStatus !== 200 || !data.responseData || 
+            (data.responseData.translatedText && data.responseData.translatedText.toUpperCase().includes("LIMIT EXCEEDED"))) {
+          throw new Error("Límite o error de traducción de MyMemory");
+        }
+
+        const translatedText = data.responseData.translatedText;
+        
+        gameDescription.innerHTML = `
+          <p class="mb-4 leading-relaxed">${translatedText}...</p>
+          <div class="mt-4 pt-3 border-t border-slate-800/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[10px] text-gray-500 bg-slate-900/10 p-2 rounded">
+            <span class="font-medium flex items-center"><i class="fa-solid fa-language mr-1.5 text-sky-400"></i> Traducido automáticamente</span>
+            <button id="btn-toggle-original" class="text-sky-400 hover:underline font-semibold cursor-pointer">Ver sinopsis original (Inglés)</button>
+          </div>
+          <div id="original-description-box" class="hidden mt-3 p-3.5 rounded-lg bg-slate-900/40 border border-slate-850 text-gray-400 text-xs leading-relaxed max-h-48 overflow-y-auto">
+            ${rawDescriptionHtml}
+          </div>
+        `;
+
+        // Habilitar botón para ver original
+        const btnToggleOriginal = document.getElementById('btn-toggle-original');
+        const originalBox = document.getElementById('original-description-box');
+        if (btnToggleOriginal && originalBox) {
+          btnToggleOriginal.addEventListener('click', () => {
+            if (originalBox.classList.contains('hidden')) {
+              originalBox.classList.remove('hidden');
+              btnToggleOriginal.textContent = "Ocultar sinopsis original";
+            } else {
+              originalBox.classList.add('hidden');
+              btnToggleOriginal.textContent = "Ver sinopsis original (Inglés)";
+            }
+          });
+        }
+      })
+      .catch(err => {
+        console.error("Error en MyMemory, mostrando descripción original con aviso:", err);
+        // Fallback final: Mostrar el texto original en inglés con un mensaje
+        gameDescription.innerHTML = `
+          <div class="p-3 mb-4 rounded-lg bg-amber-500/5 border border-amber-500/10 text-amber-400 text-[10px] flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>La traducción automática no está disponible en este momento. Configura tu clave de Gemini para activar la traducción instantánea por IA.</span>
+          </div>
+          <div class="leading-relaxed">
+            ${rawDescriptionHtml}
+          </div>
+        `;
+      });
+  };
+
   // --- RENDERIZADO BÁSICO DE RAWG DEFENSIVO (Evitar TypeErrors de innerHTML) ---
   function renderRawgData(game) {
     if (heroBanner && game.background_image) {
@@ -356,14 +484,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Inyectar descripción
-    if (gameDescription) {
-      if (game.description) {
-        gameDescription.innerHTML = game.description;
-      } else {
-        gameDescription.innerHTML = `<p class="text-gray-500 italic">No se encuentra disponible la sinopsis para este juego.</p>`;
-      }
-    }
+    // Inyectar descripción traducida en español
+    setSpanishDescription(game.description, game.name);
 
     // Estrellas de calificación (Con validación de elemento existente)
     if (starsRating) {
