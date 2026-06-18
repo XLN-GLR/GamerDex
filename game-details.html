@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalles del Juego - GamerDex</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Detalles de tus videojuegos favoritos, fichas técnicas completas y comparativas de precios de tiendas digitales en tiempo real.">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="flex flex-col justify-between min-h-screen relative">
+
+  <!-- Header -->
+  <header class="w-full py-5 px-6 md:px-12 glass-panel border-b border-gray-800 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="flex items-center space-x-3 group">
+        <div class="w-10 h-10 rounded-lg bg-gradient-gamer flex items-center justify-center text-white text-xl font-bold group-hover:scale-110 transition-transform duration-300">
+          <i class="fa-solid fa-gamepad"></i>
+        </div>
+        <span class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500 font-gamer">
+          GAMER<span class="text-white group-hover:text-cyan-400 transition-colors duration-300">DEX</span>
+        </span>
+      </a>
+      <a href="index.html" class="px-4 py-2 text-sm font-semibold rounded-lg bg-slate-900 border border-slate-800 text-gray-300 hover:text-cyan-400 hover:border-cyan-500/50 transition-all duration-300 flex items-center">
+        <i class="fa-solid fa-arrow-left mr-2"></i> Regresar al inicio
+      </a>
+    </div>
+  </header>
+
+  <!-- Banner Dinámico del Juego -->
+  <div id="hero-banner" class="w-full h-[30vh] md:h-[45vh] bg-cover bg-center relative flex items-end justify-start transition-all duration-500 ease-in-out border-b border-slate-800/80">
+    <!-- Overlay gradiente oscuro -->
+    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"></div>
+    <div class="max-w-7xl mx-auto w-full px-6 md:px-12 pb-8 relative z-10 flex items-center gap-6">
+      <div id="game-thumbnail" class="w-24 h-32 md:w-36 md:h-48 rounded-xl overflow-hidden border-2 border-white/10 hidden md:block shadow-2xl">
+        <!-- Inyectado dinámicamente -->
+      </div>
+      <div class="flex-grow">
+        <div id="game-genre-tag" class="inline-block px-3 py-1 text-xs rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 mb-3 font-semibold uppercase tracking-wider">
+          Cargando género...
+        </div>
+        <h1 id="game-title-header" class="text-3xl md:text-5xl lg:text-6xl font-black text-white font-gamer leading-tight">
+          Cargando videojuego...
+        </h1>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="flex-grow max-w-7xl mx-auto w-full px-6 md:px-12 py-12 relative">
+    
+    <!-- SPINNER DE CARGA -->
+    <div id="loading-spinner" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 z-20 min-h-[300px]">
+      <div class="w-16 h-16 border-4 border-slate-800 rounded-full animate-spin-neon mb-4"></div>
+      <p class="text-cyan-400 text-lg font-gamer uppercase tracking-widest animate-pulse">Consultando base de datos...</p>
+    </div>
+
+    <!-- CONTENEDOR DE ERROR -->
+    <div id="error-container" class="hidden glass-panel p-8 rounded-2xl border border-red-500/30 bg-red-950/20 max-w-xl mx-auto text-center my-12">
+      <div class="w-16 h-16 bg-red-500/10 border border-red-500/30 rounded-full flex items-center justify-center text-red-500 text-3xl mx-auto mb-4">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 class="text-xl font-bold font-gamer text-white mb-2 uppercase">Juego no encontrado</h3>
+      <p id="error-detail" class="text-gray-400 mb-6">No hemos podido recuperar la información del juego solicitado. Asegúrate de escribir el nombre de forma similar a como se conoce oficialmente.</p>
+      <a href="index.html" class="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-gamer text-white font-bold hover:scale-105 transition-transform duration-300">
+        <i class="fa-solid fa-search mr-2"></i> Intentar otra búsqueda
+      </a>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL (Oculto al cargar) -->
+    <div id="details-content" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Columna 1: Información RAWG API (Ficha Técnica) -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="glass-panel p-6 md:p-8 rounded-2xl border border-slate-800">
+          <h2 class="text-2xl font-bold mb-6 font-gamer text-cyan-400 flex items-center">
+            <i class="fa-solid fa-circle-info mr-3"></i> Ficha Técnica
+          </h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Fecha Lanzamiento -->
+            <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80">
+              <span class="text-xs uppercase tracking-wider text-gray-500 block mb-1">Fecha de Lanzamiento</span>
+              <span id="game-release" class="text-lg font-semibold text-white">Cargando...</span>
+            </div>
+            
+            <!-- Plataformas -->
+            <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80">
+              <span class="text-xs uppercase tracking-wider text-gray-500 block mb-1">Plataformas Disponibles</span>
+              <span id="game-platforms" class="text-lg font-semibold text-white">Cargando...</span>
+            </div>
+
+            <!-- Desarrolladores -->
+            <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80">
+              <span class="text-xs uppercase tracking-wider text-gray-500 block mb-1">Puntuación Metacritic</span>
+              <div class="flex items-center space-x-2">
+                <span id="game-metacritic" class="text-lg font-black px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">N/D</span>
+                <span class="text-xs text-gray-400 font-semibold">Calificación de la prensa</span>
+              </div>
+            </div>
+
+            <!-- Géneros -->
+            <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80">
+              <span class="text-xs uppercase tracking-wider text-gray-500 block mb-1">Géneros del Juego</span>
+              <span id="game-genres" class="text-lg font-semibold text-white">Cargando...</span>
+            </div>
+          </div>
+
+          <!-- Rating Star Container -->
+          <div class="mt-8 pt-6 border-t border-slate-800/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <span class="text-xs uppercase tracking-wider text-gray-500 block mb-1">Calificación Promedio de Usuarios (RAWG)</span>
+              <div class="flex items-center space-x-1">
+                <div id="stars-rating" class="text-amber-400 flex space-x-1">
+                  <!-- Estrellas generadas por JS -->
+                </div>
+                <span id="rating-number" class="text-sm font-bold text-gray-300 ml-2">0/5</span>
+              </div>
+            </div>
+            <div id="rawg-link-container">
+              <!-- Enlace externo a RAWG -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Columna 2: Comparativa de Precios CheapShark API -->
+      <div class="lg:col-span-1">
+        <div class="glass-panel p-6 md:p-8 rounded-2xl border border-slate-800 relative overflow-hidden flex flex-col justify-between h-full min-h-[400px]">
+          <!-- Luces decorativas en la tarjeta -->
+          <div class="absolute w-40 h-40 bg-fuchsia-500/5 rounded-full blur-2xl -top-10 -right-10"></div>
+          
+          <div>
+            <h2 class="text-2xl font-bold mb-6 font-gamer text-fuchsia-400 flex items-center">
+              <i class="fa-solid fa-tags mr-3"></i> Ofertas de PC
+            </h2>
+
+            <!-- Precio Histórico Más Bajo -->
+            <div class="p-4 rounded-xl bg-fuchsia-950/20 border border-fuchsia-500/20 mb-6 flex justify-between items-center">
+              <div>
+                <span class="text-xs uppercase tracking-wider text-fuchsia-400 font-semibold block mb-0.5">Precio Histórico Más Bajo</span>
+                <span class="text-xs text-gray-500">Registrado en CheapShark</span>
+              </div>
+              <span id="cheapest-historic" class="text-3xl font-black text-white font-gamer">N/D</span>
+            </div>
+
+            <!-- Listado de Ofertas Vigentes -->
+            <div>
+              <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Mejores Ofertas del Día</h3>
+              <div id="offers-list" class="space-y-3">
+                <!-- Ofertas generadas dinámicamente -->
+                <div class="text-gray-500 text-sm py-4 text-center">
+                  Buscando ofertas disponibles en tiendas...
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botón de Redirección Alternativas Gratis (Abajo en la tarjeta de precios) -->
+          <div class="mt-8 pt-6 border-t border-slate-800/80">
+            <button 
+              id="btn-recommendations" 
+              class="w-full py-4 px-4 rounded-xl bg-gradient-gamer text-white font-bold hover:scale-[1.02] shadow-lg shadow-cyan-500/15 hover:shadow-fuchsia-500/20 transition-all duration-300 font-gamer text-center text-sm md:text-base flex items-center justify-center gap-2 group uppercase tracking-wider"
+            >
+              <span>¿Muy caro? Ver alternativas gratis</span>
+              <i class="fa-solid fa-circle-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full py-6 px-6 glass-panel border-t border-gray-800 text-center text-sm text-gray-500 relative z-10">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <p>&copy; 2026 GamerDex. Proyecto Académico de Integración de APIs Asíncronas.</p>
+      <div class="flex space-x-6 text-gray-400">
+        <span class="hover:text-cyan-400 transition-colors cursor-pointer"><i class="fa-solid fa-bolt mr-1"></i> RAWG</span>
+        <span class="hover:text-fuchsia-400 transition-colors cursor-pointer"><i class="fa-solid fa-tags mr-1"></i> CheapShark</span>
+        <span class="hover:text-emerald-400 transition-colors cursor-pointer"><i class="fa-solid fa-gamepad mr-1"></i> FreeToGame</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- App Details Logic -->
+  <script src="details.js"></script>
+</body>
+</html>
