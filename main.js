@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Redirección segura a la vista de detalles
   const executeSearch = (term, slug = "") => {
     const cleanTerm = term.trim();
-    errorMessage.classList.add('hidden');
+    if (errorMessage) errorMessage.classList.add('hidden');
     
     if (cleanTerm === '') {
       showError('Por favor, escribe el nombre de un videojuego.');
@@ -51,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       localStorage.setItem('gamerdex_search_term', cleanTerm);
-      // Si tenemos el slug exacto de RAWG, lo guardamos para evitar búsquedas genéricas fallidas en details
       if (slug) {
         localStorage.setItem('gamerdex_search_slug', slug);
       } else {
@@ -72,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   };
 
-  // --- PRECARGA DEL CATÁLOGO INICIAL ---
+  // --- PRECARGA DEL CATÁLOGO INICIAL BLINDADA ---
 
   const loadInitialCatalog = () => {
     // 1. Cargar Tendencias de RAWG y poblar el Hero y el Grid de Tendencias
@@ -85,49 +84,57 @@ document.addEventListener('DOMContentLoaded', () => {
         const games = data.results || [];
         
         if (games.length > 0) {
-          // Poblar el Hero Banner con el primer juego de la lista
           const featured = games[0];
-          if (featured.background_image) {
+          if (heroHighlight && featured.background_image) {
             heroHighlight.style.backgroundImage = `url('${featured.background_image}')`;
           }
-          heroTitle.textContent = featured.name;
-          heroDesc.textContent = `Explora la ficha técnica, plataformas de juego, y compara las mejores ofertas de PC en tiempo real para ${featured.name}. Calificación Metacritic: ${featured.metacritic || 'N/D'}.`;
+          if (heroTitle) heroTitle.textContent = featured.name;
+          if (heroDesc) {
+            heroDesc.textContent = `Explora la ficha técnica, plataformas de juego, y compara las mejores ofertas de PC en tiempo real para ${featured.name}. Calificación Metacritic: ${featured.metacritic || 'N/D'}.`;
+          }
           
-          heroBtnDetails.onclick = () => executeSearch(featured.name, featured.slug);
+          if (heroBtnDetails) {
+            heroBtnDetails.onclick = () => executeSearch(featured.name, featured.slug);
+          }
           
-          // Poblar las 4 tendencias restantes en el grid de abajo
           const trends = games.slice(1, 5);
-          renderGrid(trendsGrid, trends, 'trends');
+          renderGrid(trendsGrid, trends);
+        } else {
+          fallbackHero();
         }
-        loadingTrends.classList.add('hidden');
-        trendsGrid.classList.remove('hidden');
+        if (loadingTrends) loadingTrends.classList.add('hidden');
+        if (trendsGrid) trendsGrid.classList.remove('hidden');
       })
       .catch(err => {
         console.error("Error cargando tendencias:", err);
-        loadingTrends.innerHTML = `<span class="text-xs text-gray-500 py-4"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> No se pudieron cargar los juegos en tendencia en este momento.</span>`;
+        fallbackHero();
+        if (loadingTrends) {
+          loadingTrends.innerHTML = `<span class="text-xs text-gray-500 py-4"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> No se pudieron cargar los juegos en tendencia en este momento.</span>`;
+        }
       });
 
-    // 2. Cargar Próximos Lanzamientos (RAWG)
-    // Usaremos un rango de fechas del año actual 2026 para mostrar novedades
-    fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&dates=2026-01-01,2026-12-31&ordering=-added&page_size=4`)
+    // 2. Cargar Próximos Lanzamientos (RAWG - Rango de fechas más robusto)
+    fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&dates=2025-06-01,2026-12-31&ordering=-added&page_size=4`)
       .then(res => {
         if (!res.ok) throw new Error("No se pudieron obtener lanzamientos de RAWG.");
         return res.json();
       })
       .then(data => {
         const games = data.results || [];
-        renderGrid(releasesGrid, games, 'releases');
-        loadingReleases.classList.add('hidden');
-        releasesGrid.classList.remove('hidden');
+        renderGrid(releasesGrid, games);
+        if (loadingReleases) loadingReleases.classList.add('hidden');
+        if (releasesGrid) releasesGrid.classList.remove('hidden');
       })
       .catch(err => {
         console.error("Error cargando lanzamientos:", err);
-        loadingReleases.innerHTML = `<span class="text-xs text-gray-500 py-4"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> No se pudieron cargar los próximos lanzamientos.</span>`;
+        if (loadingReleases) {
+          loadingReleases.innerHTML = `<span class="text-xs text-gray-500 py-4"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> No se pudieron cargar los próximos lanzamientos.</span>`;
+        }
       });
 
-    // 3. Cargar Juegos Gratuitos Populares (FreeToGame con fallback CORS)
+    // 3. Cargar Juegos Gratuitos Populares (FreeToGame con fallback de CORS allorigins /get)
     const f2pUrl = `https://www.freetogame.com/api/games?sort-by=popularity`;
-    const f2pFallbackUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(f2pUrl)}`;
+    const f2pFallbackUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(f2pUrl)}`;
 
     fetch(f2pUrl)
       .then(res => {
@@ -138,24 +145,39 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFreeGrid(games.slice(0, 4));
       })
       .catch(err => {
-        console.warn("Fallo directo CORS F2P. Usando contingencia proxy...", err);
+        console.warn("Fallo directo CORS F2P. Usando contingencia proxy allorigins /get...", err);
         fetch(f2pFallbackUrl)
           .then(res => {
             if (!res.ok) throw new Error("Error proxy F2P");
             return res.json();
           })
-          .then(games => {
-            renderFreeGrid(games.slice(0, 4));
+          .then(data => {
+            // allorigins /get devuelve { contents: "string json" }
+            if (data.contents) {
+              const games = JSON.parse(data.contents);
+              renderFreeGrid(games.slice(0, 4));
+            } else {
+              throw new Error("Estructura de datos de proxy inválida");
+            }
           })
           .catch(proxyErr => {
             console.error("Ambos endpoints F2P fallaron:", proxyErr);
-            loadingFree.innerHTML = `<span class="text-xs text-gray-500 py-4"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> No se pudieron obtener los juegos gratuitos recomendados.</span>`;
+            if (loadingFree) {
+              loadingFree.innerHTML = `<span class="text-xs text-gray-500 py-4"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> No se pudieron obtener los gratuitos recomendados.</span>`;
+            }
           });
       });
   };
 
-  // Renderizar grids de RAWG (Tendencias y Lanzamientos)
-  const renderGrid = (container, games, type) => {
+  const fallbackHero = () => {
+    if (heroTitle) heroTitle.textContent = "GamerDex";
+    if (heroDesc) heroDesc.textContent = "Busca tus videojuegos favoritos y compara ofertas en tiempo real.";
+    if (heroHighlight) heroHighlight.style.backgroundImage = "linear-gradient(135deg, #0f172a 0%, #090d16 100%)";
+  };
+
+  // Renderizar grids de RAWG
+  const renderGrid = (container, games) => {
+    if (!container) return;
     container.innerHTML = "";
     
     if (games.length === 0) {
@@ -165,12 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     games.forEach(game => {
       const card = document.createElement('div');
-      // Hover suave y elegante, menos saturado visualmente
-      card.className = "glass-panel rounded-xl overflow-hidden border border-slate-800/80 hover:border-sky-500/30 hover:shadow-[0_4px_15px_rgba(14,165,233,0.05)] transition-all duration-300 cursor-pointer flex flex-col group";
+      card.className = "glass-panel rounded-xl overflow-hidden border border-slate-800/80 hover:border-sky-500/30 hover:shadow-[0_4px_15px_rgba(14,165,233,0.03)] transition-all duration-300 cursor-pointer flex flex-col group";
       
       const thumb = game.background_image 
         ? `<img src="${game.background_image}" class="w-full h-40 object-cover group-hover:scale-[1.02] transition-transform duration-300" alt="${game.name}">`
-        : `<div class="w-full h-40 bg-slate-900 flex items-center justify-center text-slate-600"><i class="fa-solid fa-image text-3xl"></i></div>`;
+        : `<div class="w-full h-40 bg-slate-900 flex items-center justify-center text-slate-600"><i class="fa-solid fa-image text-2xl"></i></div>`;
       
       const ratingTag = game.metacritic 
         ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${game.metacritic}</span>`
@@ -196,23 +217,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Renderizar grid de F2P (Gratuitos)
   const renderFreeGrid = (games) => {
+    if (!freeGrid) return;
     freeGrid.innerHTML = "";
-    loadingFree.classList.add('hidden');
+    if (loadingFree) loadingFree.classList.add('hidden');
     freeGrid.classList.remove('hidden');
 
-    if (games.length === 0) {
+    if (!games || games.length === 0) {
       freeGrid.innerHTML = `<p class="col-span-full text-center text-sm text-gray-500">No hay juegos gratuitos disponibles.</p>`;
       return;
     }
 
     games.forEach(game => {
       const card = document.createElement('div');
-      card.className = "glass-panel rounded-xl overflow-hidden border border-slate-800/80 hover:border-emerald-500/30 hover:shadow-[0_4px_15px_rgba(16,185,129,0.05)] transition-all duration-300 cursor-pointer flex flex-col group";
+      card.className = "glass-panel rounded-xl overflow-hidden border border-slate-800/80 hover:border-emerald-500/30 hover:shadow-[0_4px_15px_rgba(16,185,129,0.03)] transition-all duration-300 cursor-pointer flex flex-col group";
 
       card.innerHTML = `
         <div class="relative">
           <img src="${game.thumbnail}" class="w-full h-40 object-cover group-hover:scale-[1.02] transition-transform duration-300" alt="${game.title}">
-          <span class="absolute top-2 right-2 text-[8px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 backdrop-blur-sm uppercase">Free</span>
+          <span class="absolute top-2 right-2 text-[8px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 backdrop-blur-sm uppercase">Free</span>
         </div>
         <div class="p-4 flex-grow flex flex-col justify-between">
           <h3 class="font-bold text-white font-gamer text-sm truncate group-hover:text-emerald-400 transition-colors mb-1">${game.title}</h3>
@@ -220,7 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
 
-      // Los juegos F2P de la pantalla de inicio redirigen a buscar en RAWG para ver su ficha técnica completa
       card.addEventListener('click', () => executeSearch(game.title));
       freeGrid.appendChild(card);
     });
@@ -228,11 +249,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- LÓGICA DE BÚSQUEDA Y AUTOCOMPLETADO ---
 
-  // Mostrar sugerencias aleatorias al hacer foco (cuando está vacío)
+  // Mostrar sugerencias aleatorias al hacer foco (vacío)
   const showRandomSuggestions = () => {
+    if (!autocompleteResults) return;
     autocompleteResults.innerHTML = "";
     
-    // Mezclar y tomar 4 sugerencias aleatorias
     const shuffled = [...RANDOM_POOL].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, 4);
 
@@ -240,11 +261,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const item = document.createElement('div');
       item.className = "autocomplete-item flex items-center gap-3 p-3 cursor-pointer text-xs text-gray-300";
       item.innerHTML = `
-        <div class="w-7 h-7 rounded bg-slate-900 border border-slate-800 flex items-center justify-center text-sky-400">
+        <div class="w-7 h-7 rounded bg-slate-905 border border-slate-800 flex items-center justify-center text-sky-400">
           <i class="fa-solid fa-arrow-trend-up"></i>
         </div>
         <div class="flex-grow min-w-0">
-          <p class="font-semibold text-gray-200">Prueba buscando: <span class="text-sky-400 font-bold font-gamer">${term}</span></p>
+          <p class="font-semibold text-gray-200">Sugerencia: <span class="text-sky-400 font-bold font-gamer">${term}</span></p>
         </div>
       `;
 
@@ -286,11 +307,12 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .catch(err => {
         console.error("Autocompletado error:", err);
-        autocompleteResults.classList.add('hidden');
+        if (autocompleteResults) autocompleteResults.classList.add('hidden');
       });
   };
 
   const renderAutocomplete = (games) => {
+    if (!autocompleteResults) return;
     autocompleteResults.innerHTML = "";
     
     games.forEach(game => {
@@ -323,40 +345,46 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Escuchar el input con debounce
-  searchInput.addEventListener('input', debounce((e) => {
-    fetchAutocompleteSuggestions(e.target.value);
-  }, 300));
+  if (searchInput) {
+    searchInput.addEventListener('input', debounce((e) => {
+      fetchAutocompleteSuggestions(e.target.value);
+    }, 300));
 
-  // Al hacer click/focus en el input vacío, mostrar sugerencias aleatorias
-  searchInput.addEventListener('focus', () => {
-    if (searchInput.value.trim().length < 2) {
-      showRandomSuggestions();
-    } else if (autocompleteResults.children.length > 0) {
-      autocompleteResults.classList.remove('hidden');
-    }
-  });
+    // Al hacer click/focus en el input vacío, mostrar sugerencias aleatorias
+    searchInput.addEventListener('focus', () => {
+      if (searchInput.value.trim().length < 2) {
+        showRandomSuggestions();
+      } else if (autocompleteResults && autocompleteResults.children.length > 0) {
+        autocompleteResults.classList.remove('hidden');
+      }
+    });
+  }
 
   // Escuchar el submit del formulario
-  searchForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    executeSearch(searchInput.value);
-  });
+  if (searchForm) {
+    searchForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      executeSearch(searchInput.value);
+    });
+  }
 
   // Cerrar el dropdown si se hace clic fuera
   document.addEventListener('click', (e) => {
-    if (!searchForm.contains(e.target)) {
+    if (searchForm && !searchForm.contains(e.target) && autocompleteResults) {
       autocompleteResults.classList.add('hidden');
     }
   });
 
   // Mostrar error
   function showError(message) {
-    errorText.textContent = message;
-    errorMessage.classList.remove('hidden');
-    errorMessage.classList.add('animate-pulse');
-    setTimeout(() => {
-      errorMessage.classList.remove('animate-pulse');
-    }, 1000);
+    if (errorText) errorText.textContent = message;
+    if (errorMessage) {
+      errorMessage.classList.remove('hidden');
+      errorMessage.classList.add('animate-pulse');
+      setTimeout(() => {
+        errorMessage.classList.remove('animate-pulse');
+      }, 1000);
+    }
   }
 
   // --- CARGAR CATÁLOGO INICIAL AL ARRANCAR ---
