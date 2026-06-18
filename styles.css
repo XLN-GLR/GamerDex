@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@300;400;500;700&display=swap');
+
+:root {
+  --bg-primary: #0b0f19;
+  --bg-secondary: #111827;
+  --bg-card: rgba(17, 24, 39, 0.85);
+  --neon-cyan: #06b6d4;
+  --neon-magenta: #d946ef;
+  --neon-green: #10b981;
+  --font-gamer: 'Orbitron', sans-serif;
+  --font-sans: 'Outfit', sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: #f3f4f6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(217, 70, 239, 0.15) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(6, 182, 212, 0.1) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+h1, h2, h3, .font-gamer {
+  font-family: var(--font-gamer);
+  letter-spacing: 0.05em;
+}
+
+/* Glassmorphism */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Efectos de Brillo Neón */
+.neon-border-cyan {
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.1), inset 0 0 15px rgba(6, 182, 212, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neon-border-cyan:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.35), inset 0 0 10px rgba(6, 182, 212, 0.15);
+  transform: translateY(-2px);
+}
+
+.neon-border-magenta {
+  border: 1px solid rgba(217, 70, 239, 0.3);
+  box-shadow: 0 0 15px rgba(217, 70, 239, 0.1), inset 0 0 15px rgba(217, 70, 239, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neon-border-magenta:hover {
+  border-color: var(--neon-magenta);
+  box-shadow: 0 0 25px rgba(217, 70, 239, 0.35), inset 0 0 10px rgba(217, 70, 239, 0.15);
+  transform: translateY(-2px);
+}
+
+.neon-border-green {
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.1), inset 0 0 15px rgba(16, 185, 129, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neon-border-green:hover {
+  border-color: var(--neon-green);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.35), inset 0 0 10px rgba(16, 185, 129, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Efectos de texto Neón */
+.neon-text-cyan {
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
+}
+
+.neon-text-magenta {
+  text-shadow: 0 0 8px rgba(217, 70, 239, 0.6);
+}
+
+.neon-text-green {
+  text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+/* Scrollbar Personalizado */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-cyan);
+}
+
+/* Animaciones */
+@keyframes spin-neon {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin-neon {
+  animation: spin-neon 1.5s linear infinite;
+  border-top-color: var(--neon-cyan);
+  border-right-color: var(--neon-magenta);
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom Gradients */
+.bg-gradient-gamer {
+  background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-magenta) 100%);
+}
+
+.bg-gradient-gamer-hover:hover {
+  background: linear-gradient(135deg, var(--neon-magenta) 0%, var(--neon-cyan) 100%);
+}
+
+/* Autocomplete Panel */
+#autocomplete-results {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.autocomplete-item {
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover {
+  background: rgba(6, 182, 212, 0.1);
+  border-left: 3px solid var(--neon-cyan);
+}
+
+/* Chatbot CSS */
+#chatbot-container {
+  z-index: 100;
+}
+
+.chatbot-window {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 30px rgba(217, 70, 239, 0.15);
+}
+
+.chat-bubble-user {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0.35) 100%);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 18px 18px 4px 18px;
+}
+
+.chat-bubble-bot {
+  background: rgba(31, 41, 55, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px 18px 18px 4px;
+}
+
+/* Botón flotante pulso */
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(217, 70, 239, 0.5); }
+  70% { transform: scale(1); box-shadow: 0 0 0 12px rgba(217, 70, 239, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(217, 70, 239, 0); }
+}
+
+.pulse-ring-magenta {
+  animation: pulse-ring 2s infinite;
+}

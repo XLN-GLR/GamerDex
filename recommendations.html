@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alternativas Gratuitas - GamerDex</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Descubre juegos 100% gratuitos y de alta calidad del mismo género de tus videojuegos favoritos.">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="flex flex-col justify-between min-h-screen relative">
+
+  <!-- Header -->
+  <header class="w-full py-5 px-6 md:px-12 glass-panel border-b border-gray-800 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="flex items-center space-x-3 group">
+        <div class="w-10 h-10 rounded-lg bg-gradient-gamer flex items-center justify-center text-white text-xl font-bold group-hover:scale-110 transition-transform duration-300">
+          <i class="fa-solid fa-gamepad"></i>
+        </div>
+        <span class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500 font-gamer">
+          GAMER<span class="text-white group-hover:text-cyan-400 transition-colors duration-300">DEX</span>
+        </span>
+      </a>
+      <a href="game-details.html" class="px-4 py-2 text-sm font-semibold rounded-lg bg-slate-900 border border-slate-800 text-gray-300 hover:text-cyan-400 hover:border-cyan-500/50 transition-all duration-300 flex items-center">
+        <i class="fa-solid fa-arrow-left mr-2"></i> Regresar a detalles
+      </a>
+    </div>
+  </header>
+
+  <!-- Seccion Cabecera -->
+  <section class="py-12 px-6 md:px-12 bg-slate-950/40 border-b border-slate-900">
+    <div class="max-w-7xl mx-auto text-center">
+      <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mb-4">
+        <i class="fa-solid fa-gift text-2xl"></i>
+      </div>
+      <h1 class="text-3xl md:text-5xl font-black text-white font-gamer uppercase tracking-wide">
+        Alternativas <span class="text-emerald-400 neon-text-emerald">Gratis</span>
+      </h1>
+      <p class="text-gray-400 mt-2 text-base md:text-lg">
+        Recomendaciones 100% free-to-play del género: <span id="genre-title-placeholder" class="text-cyan-400 font-semibold font-gamer uppercase tracking-wider">Cargando...</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Content Area -->
+  <main class="flex-grow max-w-7xl mx-auto w-full px-6 md:px-12 py-12 relative">
+    
+    <!-- SPINNER DE CARGA -->
+    <div id="loading-spinner" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 z-20 min-h-[300px]">
+      <div class="w-16 h-16 border-4 border-slate-800 rounded-full animate-spin-neon mb-4"></div>
+      <p class="text-emerald-400 text-lg font-gamer uppercase tracking-widest animate-pulse">Buscando juegos gratuitos...</p>
+    </div>
+
+    <!-- CONTENEDOR DE ERROR -->
+    <div id="error-container" class="hidden glass-panel p-8 rounded-2xl border border-red-500/30 bg-red-950/20 max-w-xl mx-auto text-center my-12">
+      <div class="w-16 h-16 bg-red-500/10 border border-red-500/30 rounded-full flex items-center justify-center text-red-500 text-3xl mx-auto mb-4">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 class="text-xl font-bold font-gamer text-white mb-2 uppercase">Sin alternativas</h3>
+      <p id="error-detail" class="text-gray-400 mb-6">No pudimos conectar con la base de datos de juegos gratuitos o no existen títulos en este género en este momento.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <button id="btn-retry" class="inline-flex items-center px-5 py-2.5 rounded-lg bg-slate-900 border border-slate-800 text-white font-bold hover:text-cyan-400 hover:border-cyan-500/50 transition-all">
+          <i class="fa-solid fa-rotate-right mr-2"></i> Reintentar conexión
+        </button>
+        <a href="game-details.html" class="inline-flex items-center px-5 py-2.5 rounded-lg bg-gradient-gamer text-white font-bold hover:scale-105 transition-transform duration-300">
+          <i class="fa-solid fa-arrow-left mr-2"></i> Volver a detalles
+        </a>
+      </div>
+    </div>
+
+    <!-- REJILLA DE CATÁLOGO (GRID) -->
+    <div id="catalog-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Las tarjetas se inyectarán dinámicamente mediante JS -->
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full py-6 px-6 glass-panel border-t border-gray-800 text-center text-sm text-gray-500 relative z-10">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <p>&copy; 2026 GamerDex. Proyecto Académico de Integración de APIs Asíncronas.</p>
+      <div class="flex space-x-6 text-gray-400">
+        <span class="hover:text-cyan-400 transition-colors cursor-pointer"><i class="fa-solid fa-bolt mr-1"></i> RAWG</span>
+        <span class="hover:text-fuchsia-400 transition-colors cursor-pointer"><i class="fa-solid fa-tags mr-1"></i> CheapShark</span>
+        <span class="hover:text-emerald-400 transition-colors cursor-pointer"><i class="fa-solid fa-gamepad mr-1"></i> FreeToGame</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- App Recommendations Logic -->
+  <script src="recommendations.js"></script>
+</body>
+</html>
