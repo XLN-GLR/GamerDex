@@ -26,14 +26,31 @@ const STORES_MAP = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  const searchTerm = localStorage.getItem('gamerdex_search_term');
-  const searchSlug = localStorage.getItem('gamerdex_search_slug');
+  // --- LEER ENTRADA DESDE URL O LOCALSTORAGE (Soporte Híbrido Avanzado) ---
+  const urlParams = new URLSearchParams(window.location.search);
+  let searchTerm = urlParams.get('query') || urlParams.get('search');
+  let searchSlug = urlParams.get('slug') || urlParams.get('id');
+
+  // Si no se pasaron por URL, buscar en localStorage
+  if (!searchTerm && !searchSlug) {
+    searchTerm = localStorage.getItem('gamerdex_search_term');
+    searchSlug = localStorage.getItem('gamerdex_search_slug');
+  } else {
+    // Si vinieron por URL, actualizarlos en localStorage para mantener el estado cruzado
+    if (searchTerm) localStorage.setItem('gamerdex_search_term', searchTerm);
+    if (searchSlug) {
+      localStorage.setItem('gamerdex_search_slug', searchSlug);
+    } else {
+      localStorage.removeItem('gamerdex_search_slug');
+    }
+  }
+
   const loadingSpinner = document.getElementById('loading-spinner');
   const errorContainer = document.getElementById('error-container');
   const detailsContent = document.getElementById('details-content');
   const btnRecommendations = document.getElementById('btn-recommendations');
 
-  // Elementos del DOM a rellenar (RAWG)
+  // Elementos del DOM (RAWG)
   const heroBanner = document.getElementById('hero-banner');
   const gameThumbnail = document.getElementById('game-thumbnail');
   const gameGenreTag = document.getElementById('game-genre-tag');
@@ -46,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const ratingNumber = document.getElementById('rating-number');
   const rawgLinkContainer = document.getElementById('rawg-link-container');
 
-  // Nuevas secciones agregadas para requisitos multimedia
+  // Secciones multimedia
   const gameDescription = document.getElementById('game-description');
   const trailerSection = document.getElementById('trailer-section');
   const screenshotsGrid = document.getElementById('screenshots-grid');
@@ -64,20 +81,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatbotInput = document.getElementById('chatbot-input');
   const chatbotMessages = document.getElementById('chatbot-messages');
 
-  if (!searchTerm) {
-    showError("No se especificó ningún término de búsqueda. Regresa al buscador.");
+  // Si no se encuentra ningún término de búsqueda, dar error
+  if (!searchTerm && !searchSlug) {
+    showError("No se especificó ningún término de búsqueda o ID de videojuego. Regresa al buscador.");
     return;
   }
 
-  // Definir la función que obtiene los detalles técnicos de un juego a partir de su slug
+  // Consulta de detalles por slug
   const fetchGameDetails = (slug) => {
     fetch(`https://api.rawg.io/api/games/${slug}?key=${RAWG_KEY}`)
       .then(response => {
-        if (!response.ok) throw new Error("Error en la obtención detallada de RAWG");
+        if (!response.ok) throw new Error("No se pudo obtener información detallada desde RAWG.");
         return response.json();
       })
       .then(game => {
-        // Guardar en el contexto de Gemini
         currentGameContext = {
           name: game.name,
           platforms: game.platforms ? game.platforms.map(p => p.platform.name).join(', ') : "PC",
@@ -88,49 +105,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderRawgData(game);
 
-        // Guardar el género en localStorage para recommendations.html
         if (game.genres && game.genres.length > 0) {
           localStorage.setItem('gamerdex_genre', game.genres[0].slug);
           localStorage.setItem('gamerdex_genre_name', game.genres[0].name);
         }
 
-        // Cargar galería de imágenes
         fetchScreenshots(slug);
-
-        // Cargar trailers
         fetchTrailers(slug);
-
-        // Cargar comentarios semidinámicos
         renderComments(game);
 
-        // Retornar el juego para encadenar CheapShark de forma directa
         return game;
       })
-      // Encadenar segundo fetch de forma directa sin llaves a CheapShark por título
+      // Encadenado directo sin llaves a CheapShark por el nombre exacto de RAWG
       .then(game => fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(game.name)}`))
       .then(response => {
-        if (!response.ok) throw new Error("Error en la respuesta de CheapShark API");
+        if (!response.ok) throw new Error("Error consultando CheapShark API");
         return response.json();
       })
       .then(cheapSharkGames => {
         if (!cheapSharkGames || cheapSharkGames.length === 0) {
-          cheapestHistoric.textContent = "N/D";
-          offersList.innerHTML = `
-            <div class="text-slate-400 text-xs py-4 text-center bg-slate-900/30 border border-slate-800 rounded-lg">
-              <i class="fa-solid fa-info-circle mr-2 text-sky-400"></i> Sin ofertas vigentes en CheapShark.
-            </div>`;
+          if (cheapestHistoric) cheapestHistoric.textContent = "N/D";
+          if (offersList) {
+            offersList.innerHTML = `
+              <div class="text-slate-400 text-xs py-4 text-center bg-slate-900/30 border border-slate-800 rounded-lg">
+                <i class="fa-solid fa-info-circle mr-2 text-sky-400"></i> Sin ofertas vigentes en CheapShark.
+              </div>`;
+          }
           finishLoading();
           return;
         }
 
         const cheapGame = cheapSharkGames[0];
-        cheapestHistoric.textContent = `$${cheapGame.cheapest}`;
+        if (cheapestHistoric) cheapestHistoric.textContent = `$${cheapGame.cheapest}`;
 
         return fetch(`https://www.cheapshark.com/api/1.0/games?id=${cheapGame.gameID}`);
       })
       .then(response => {
         if (!response) return null;
-        if (!response.ok) throw new Error("Error al consultar detalles de oferta en CheapShark");
+        if (!response.ok) throw new Error("Error obteniendo ofertas en CheapShark");
         return response.json();
       })
       .then(dealDetails => {
@@ -140,47 +152,46 @@ document.addEventListener('DOMContentLoaded', () => {
         finishLoading();
       })
       .catch(error => {
-        console.error("Error cargando detalles del juego:", error);
+        console.error("Fallo de red en la ficha:", error);
         showError(error.message);
       });
   };
 
-  // --- RESOLVER EL JUEGO INICIAL ---
-  // Si ya tenemos el slug directo, cargamos de inmediato
+  // --- CONTROL DE CARGA INICIAL ---
   if (searchSlug) {
     fetchGameDetails(searchSlug);
   } else {
-    // Si no, hacemos una búsqueda rápida a RAWG para obtener el slug exacto
+    // Si solo tenemos término, buscar el slug primero
     fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(searchTerm)}&page_size=3`)
       .then(res => {
-        if (!res.ok) throw new Error("No se pudo conectar con la base de datos de RAWG");
+        if (!res.ok) throw new Error("Error buscando en la base de datos de RAWG.");
         return res.json();
       })
       .then(data => {
         if (!data.results || data.results.length === 0) {
-          throw new Error(`No se encontraron registros para "${searchTerm}".`);
+          throw new Error(`No se encontró ningún videojuego coincidente con "${searchTerm}".`);
         }
-        // Tomamos el primer resultado y cargamos sus detalles
         fetchGameDetails(data.results[0].slug);
       })
       .catch(err => {
-        console.error("Búsqueda inicial falló:", err);
+        console.error("Fallo al resolver juego:", err);
         showError(err.message);
       });
   }
 
-  // --- OBTENER CAPTURAS DE PANTALLA ---
+  // --- OBTENER SCREENSHOTS ---
   const fetchScreenshots = (slug) => {
+    if (!screenshotsGrid) return;
+    
     fetch(`https://api.rawg.io/api/games/${slug}/screenshots?key=${RAWG_KEY}`)
       .then(res => {
-        if (!res.ok) throw new Error("Fallo al obtener capturas");
+        if (!res.ok) throw new Error("Fallo capturas");
         return res.json();
       })
       .then(data => {
         const list = data.results || [];
         
         if (list.length === 0) {
-          // Indicación explícita de "No se encuentra disponible"
           screenshotsGrid.innerHTML = `
             <div class="col-span-full text-slate-500 text-xs py-10 text-center bg-slate-900/30 rounded-lg border border-slate-800">
               <i class="fa-solid fa-images-slash text-lg block mb-2 text-slate-600"></i>
@@ -190,39 +201,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         screenshotsGrid.innerHTML = "";
-        // Mostrar máximo 4 capturas
         list.slice(0, 4).forEach(shot => {
           const item = document.createElement('div');
           item.className = "rounded-lg overflow-hidden border border-slate-800 bg-slate-900/40 relative h-40 group cursor-pointer";
           item.innerHTML = `
-            <img src="${shot.image}" class="w-full h-full object-cover gallery-img" alt="Captura de ${currentGameContext.name}">
+            <img src="${shot.image}" class="w-full h-full object-cover gallery-img" alt="Captura">
           `;
-          // Al hacer clic, abre la imagen en una nueva pestaña
           item.addEventListener('click', () => window.open(shot.image, '_blank'));
           screenshotsGrid.appendChild(item);
         });
       })
       .catch(err => {
-        console.error("Error capturas:", err);
-        screenshotsGrid.innerHTML = `
-          <div class="col-span-full text-slate-500 text-xs py-8 text-center">
-            No se pudo cargar la galería multimedia.
-          </div>`;
+        console.error(err);
+        screenshotsGrid.innerHTML = `<div class="col-span-full text-slate-500 text-xs text-center py-6">Galería no disponible.</div>`;
       });
   };
 
-  // --- OBTENER TRAILERS DE VIDEO ---
+  // --- OBTENER TRAILERS ---
   const fetchTrailers = (slug) => {
+    if (!trailerSection) return;
+
     fetch(`https://api.rawg.io/api/games/${slug}/movies?key=${RAWG_KEY}`)
       .then(res => {
-        if (!res.ok) throw new Error("Fallo al obtener videos");
+        if (!res.ok) throw new Error("Fallo trailers");
         return res.json();
       })
       .then(data => {
         const trailers = data.results || [];
 
         if (trailers.length === 0) {
-          // Indicación explícita de "No se encuentra disponible"
           trailerSection.innerHTML = `
             <div class="text-slate-500 text-xs py-10 text-center bg-slate-900/30 rounded-lg border border-slate-800">
               <i class="fa-solid fa-video-slash text-lg block mb-2 text-slate-600"></i>
@@ -243,22 +250,17 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       })
       .catch(err => {
-        console.error("Error trailers:", err);
-        trailerSection.innerHTML = `
-          <div class="text-slate-500 text-xs py-8 text-center">
-            No se pudo obtener el tráiler en este momento.
-          </div>`;
+        console.error(err);
+        trailerSection.innerHTML = `<div class="text-slate-500 text-xs text-center py-6">Tráiler no disponible.</div>`;
       });
   };
 
-  // --- RENDERIZAR COMENTARIOS Y VALORACIONES DE FUENTES ---
+  // --- RENDERIZAR COMENTARIOS DE FUENTES ---
   const renderComments = (game) => {
+    if (!commentsSection) return;
     commentsSection.innerHTML = "";
 
-    // Si el juego tiene Metacritic, usaremos valoraciones ficticias pero hiperrealistas de medios conocidos basadas en la puntuación
     const score = game.metacritic || 80;
-    
-    // Pool de reviews
     const REVIEWS_POOL = [
       {
         source: "IGN España",
@@ -303,82 +305,95 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // --- RENDERIZADO BÁSICO DE RAWG ---
+  // --- RENDERIZADO BÁSICO DE RAWG DEFENSIVO (Evitar TypeErrors de innerHTML) ---
   function renderRawgData(game) {
-    if (game.background_image) {
+    if (heroBanner && game.background_image) {
       heroBanner.style.backgroundImage = `url('${game.background_image}')`;
-      gameThumbnail.innerHTML = `<img src="${game.background_image}" alt="${game.name}" class="w-full h-full object-cover">`;
-    } else {
-      heroBanner.style.backgroundImage = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
-      gameThumbnail.innerHTML = `
-        <div class="w-full h-full bg-slate-800 flex items-center justify-center text-slate-600">
-          <i class="fa-solid fa-image text-3xl"></i>
-        </div>`;
     }
-
-    gameTitleHeader.textContent = game.name;
-    if (game.genres && game.genres.length > 0) {
-      gameGenreTag.textContent = game.genres[0].name;
-      gameGenres.textContent = game.genres.map(g => g.name).join(', ');
-    } else {
-      gameGenreTag.textContent = "Desconocido";
-      gameGenres.textContent = "No especificado";
-    }
-
-    gameRelease.textContent = game.released ? formatDate(game.released) : "Próximamente";
-
-    if (game.platforms && game.platforms.length > 0) {
-      gamePlatforms.textContent = game.platforms.map(p => p.platform.name).join(', ');
-    } else {
-      gamePlatforms.textContent = "No especificado";
-    }
-
-    if (game.metacritic) {
-      gameMetacritic.textContent = game.metacritic;
-      if (game.metacritic >= 75) {
-        gameMetacritic.className = "text-xs font-black px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/25";
-      } else if (game.metacritic >= 50) {
-        gameMetacritic.className = "text-xs font-black px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/25";
-      } else {
-        gameMetacritic.className = "text-xs font-black px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/25";
-      }
-    } else {
-      gameMetacritic.textContent = "N/D";
-      gameMetacritic.className = "text-xs font-black px-2 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700";
-    }
-
-    // Inyectar sinopsis/descripción del juego
-    if (game.description) {
-      // RAWG retorna descripción con etiquetas HTML. Para mantener la seguridad y estilo gamer:
-      gameDescription.innerHTML = game.description;
-    } else {
-      gameDescription.innerHTML = `<p class="text-gray-500 italic">No se encuentra disponible la sinopsis para este juego.</p>`;
-    }
-
-    // Estrellas de Calificación
-    starsRating.innerHTML = "";
-    const ratingVal = game.rating || 0;
-    ratingNumber.textContent = `${ratingVal.toFixed(1)} / 5`;
-    const fullStars = Math.floor(ratingVal);
-    const halfStar = ratingVal % 1 >= 0.5 ? 1 : 0;
     
-    for (let i = 1; i <= 5; i++) {
-      if (i <= fullStars) {
-        starsRating.innerHTML += '<i class="fa-solid fa-star text-amber-400 text-xs"></i>';
-      } else if (i === fullStars + 1 && halfStar) {
-        starsRating.innerHTML += '<i class="fa-solid fa-star-half-stroke text-amber-400 text-xs"></i>';
+    if (gameThumbnail) {
+      if (game.background_image) {
+        gameThumbnail.innerHTML = `<img src="${game.background_image}" alt="${game.name}" class="w-full h-full object-cover">`;
       } else {
-        starsRating.innerHTML += '<i class="fa-regular fa-star text-slate-600 text-xs"></i>';
+        gameThumbnail.innerHTML = `
+          <div class="w-full h-full bg-slate-800 flex items-center justify-center text-slate-600">
+            <i class="fa-solid fa-image text-3xl"></i>
+          </div>`;
       }
     }
 
-    rawgLinkContainer.innerHTML = `
-      <a href="https://rawg.io/games/${game.slug}" target="_blank" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-semibold text-gray-400 hover:text-sky-400 hover:border-sky-500/30 transition-all flex items-center gap-1">
-        <span>Ver en RAWG</span> <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
-      </a>`;
+    if (gameTitleHeader) gameTitleHeader.textContent = game.name;
+    
+    if (gameGenreTag) {
+      gameGenreTag.textContent = (game.genres && game.genres.length > 0) ? game.genres[0].name : "General";
+    }
+
+    if (gameGenres) {
+      gameGenres.textContent = (game.genres && game.genres.length > 0) ? game.genres.map(g => g.name).join(', ') : "No especificado";
+    }
+
+    if (gameRelease) {
+      gameRelease.textContent = game.released ? formatDate(game.released) : "Próximamente";
+    }
+
+    if (gamePlatforms) {
+      gamePlatforms.textContent = (game.platforms && game.platforms.length > 0) ? game.platforms.map(p => p.platform.name).join(', ') : "No especificado";
+    }
+
+    if (gameMetacritic) {
+      if (game.metacritic) {
+        gameMetacritic.textContent = game.metacritic;
+        if (game.metacritic >= 75) {
+          gameMetacritic.className = "text-xs font-black px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/25";
+        } else if (game.metacritic >= 50) {
+          gameMetacritic.className = "text-xs font-black px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/25";
+        } else {
+          gameMetacritic.className = "text-xs font-black px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/25";
+        }
+      } else {
+        gameMetacritic.textContent = "N/D";
+        gameMetacritic.className = "text-xs font-black px-2 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700";
+      }
+    }
+
+    // Inyectar descripción
+    if (gameDescription) {
+      if (game.description) {
+        gameDescription.innerHTML = game.description;
+      } else {
+        gameDescription.innerHTML = `<p class="text-gray-500 italic">No se encuentra disponible la sinopsis para este juego.</p>`;
+      }
+    }
+
+    // Estrellas de calificación (Con validación de elemento existente)
+    if (starsRating) {
+      starsRating.innerHTML = "";
+      const ratingVal = game.rating || 0;
+      if (ratingNumber) ratingNumber.textContent = `${ratingVal.toFixed(1)} / 5`;
+      const fullStars = Math.floor(ratingVal);
+      const halfStar = ratingVal % 1 >= 0.5 ? 1 : 0;
+      
+      for (let i = 1; i <= 5; i++) {
+        if (i <= fullStars) {
+          starsRating.innerHTML += '<i class="fa-solid fa-star text-amber-400 text-xs"></i>';
+        } else if (i === fullStars + 1 && halfStar) {
+          starsRating.innerHTML += '<i class="fa-solid fa-star-half-stroke text-amber-400 text-xs"></i>';
+        } else {
+          starsRating.innerHTML += '<i class="fa-regular fa-star text-slate-600 text-xs"></i>';
+        }
+      }
+    }
+
+    if (rawgLinkContainer) {
+      rawgLinkContainer.innerHTML = `
+        <a href="https://rawg.io/games/${game.slug}" target="_blank" class="px-3 py-1.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-semibold text-gray-400 hover:text-sky-400 hover:border-sky-500/30 transition-all flex items-center gap-1">
+          <span>Ver en RAWG</span> <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
+        </a>`;
+    }
   }
 
   function renderOffers(deals) {
+    if (!offersList) return;
     offersList.innerHTML = "";
     
     const uniqueDeals = [];
@@ -433,16 +448,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function finishLoading() {
-    loadingSpinner.classList.add('hidden');
-    detailsContent.classList.remove('hidden');
+    if (loadingSpinner) loadingSpinner.classList.add('hidden');
+    if (detailsContent) detailsContent.classList.remove('hidden');
   }
 
   function showError(message) {
-    loadingSpinner.classList.add('hidden');
-    detailsContent.classList.add('hidden');
-    errorContainer.classList.remove('hidden');
-    if (message) {
-      document.getElementById('error-detail').textContent = message;
+    if (loadingSpinner) loadingSpinner.classList.add('hidden');
+    if (detailsContent) detailsContent.classList.add('hidden');
+    if (errorContainer) {
+      errorContainer.classList.remove('hidden');
+      const errorDetail = document.getElementById('error-detail');
+      if (errorDetail && message) errorDetail.textContent = message;
     }
   }
 
@@ -457,39 +473,43 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- LÓGICA DEL CHATBOT CON GEMINI ---
+  if (chatbotToggleBtn && chatbotWindow) {
+    chatbotToggleBtn.addEventListener('click', () => {
+      chatbotWindow.classList.toggle('hidden');
+      scrollToBottom();
+      const pings = chatbotToggleBtn.querySelectorAll('span');
+      pings.forEach(ping => ping.remove());
+    });
+  }
 
-  chatbotToggleBtn.addEventListener('click', () => {
-    chatbotWindow.classList.toggle('hidden');
-    scrollToBottom();
-    const pings = chatbotToggleBtn.querySelectorAll('span');
-    pings.forEach(ping => ping.remove());
-  });
+  if (chatbotCloseBtn && chatbotWindow) {
+    chatbotCloseBtn.addEventListener('click', () => {
+      chatbotWindow.classList.add('hidden');
+    });
+  }
 
-  chatbotCloseBtn.addEventListener('click', () => {
-    chatbotWindow.classList.add('hidden');
-  });
+  if (chatbotForm) {
+    chatbotForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const message = chatbotInput.value.trim();
+      if (!message) return;
 
-  chatbotForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const message = chatbotInput.value.trim();
-    if (!message) return;
+      appendMessage(message, 'user');
+      chatbotInput.value = "";
+      scrollToBottom();
 
-    appendMessage(message, 'user');
-    chatbotInput.value = "";
-    scrollToBottom();
+      if (GEMINI_KEY === "TU_API_KEY_AQUI" || GEMINI_KEY.trim() === "") {
+        setTimeout(() => {
+          appendMessage("❌ Error: Clave de API de Gemini no configurada. Por favor, edita la constante GEMINI_KEY al inicio de `details.js` con tu API Key de Google AI Studio.", 'bot-error');
+          scrollToBottom();
+        }, 600);
+        return;
+      }
 
-    if (GEMINI_KEY === "TU_API_KEY_AQUI" || GEMINI_KEY.trim() === "") {
-      setTimeout(() => {
-        appendMessage("❌ Error: Clave de API de Gemini no configurada. Por favor, edita la constante GEMINI_KEY al inicio de `details.js` con tu API Key de Google AI Studio.", 'bot-error');
-        scrollToBottom();
-      }, 600);
-      return;
-    }
+      const loadingBubble = appendLoadingBubble();
+      scrollToBottom();
 
-    const loadingBubble = appendLoadingBubble();
-    scrollToBottom();
-
-    const systemPrompt = `Actúas como un Asistente Gamer virtual e inteligente para el sitio GamerDex. Tu especialidad es aconsejar y responder sobre el videojuego "${currentGameContext.name}".
+      const systemPrompt = `Actúas como un Asistente Gamer virtual e inteligente para el sitio GamerDex. Tu especialidad es aconsejar y responder sobre el videojuego "${currentGameContext.name}".
 Detalles técnicos de este juego:
 - Plataformas: ${currentGameContext.platforms}
 - Géneros: ${currentGameContext.genres}
@@ -500,44 +520,46 @@ Responde en español de forma entusiasta, clara y corta (máximo 3 oraciones), u
 
 Mensaje del usuario: ${message}`;
 
-    const requestBody = {
-      contents: [{
-        parts: [{
-          text: systemPrompt
+      const requestBody = {
+        contents: [{
+          parts: [{
+            text: systemPrompt
+          }]
         }]
-      }]
-    };
+      };
 
-    fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Fallo en la comunicación con la API de Gemini");
-        return res.json();
+      fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
       })
-      .then(data => {
-        loadingBubble.remove();
-        if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0]) {
-          const reply = data.candidates[0].content.parts[0].text;
-          appendMessage(reply, 'bot');
-        } else {
-          throw new Error("Respuesta inválida de la IA");
-        }
-        scrollToBottom();
-      })
-      .catch(err => {
-        console.error("Chatbot Error:", err);
-        loadingBubble.remove();
-        appendMessage("👾 *El enlace de red con el asistente se ha caído.* Reintenta en unos segundos o comprueba la validez de tu clave de Gemini.", 'bot-error');
-        scrollToBottom();
-      });
-  });
+        .then(res => {
+          if (!res.ok) throw new Error("Fallo en la comunicación con la API de Gemini");
+          return res.json();
+        })
+        .then(data => {
+          loadingBubble.remove();
+          if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0]) {
+            const reply = data.candidates[0].content.parts[0].text;
+            appendMessage(reply, 'bot');
+          } else {
+            throw new Error("Respuesta inválida de la IA");
+          }
+          scrollToBottom();
+        })
+        .catch(err => {
+          console.error("Chatbot Error:", err);
+          loadingBubble.remove();
+          appendMessage("👾 *El enlace de red con el asistente se ha caído.* Reintenta en unos segundos o comprueba la validez de tu clave de Gemini.", 'bot-error');
+          scrollToBottom();
+        });
+    });
+  }
 
   function appendMessage(text, sender) {
+    if (!chatbotMessages) return;
     const bubble = document.createElement('div');
     if (sender === 'user') {
       bubble.className = "chat-bubble-user p-2.5 max-w-[85%] self-end text-gray-100 shadow-sm";
@@ -553,6 +575,7 @@ Mensaje del usuario: ${message}`;
   }
 
   function appendLoadingBubble() {
+    if (!chatbotMessages) return null;
     const bubble = document.createElement('div');
     bubble.className = "chat-bubble-bot p-2.5 max-w-[85%] self-start text-gray-400 flex items-center gap-1 shadow-sm";
     bubble.id = "chatbot-loading";
@@ -567,11 +590,12 @@ Mensaje del usuario: ${message}`;
   }
 
   function scrollToBottom() {
-    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    if (chatbotMessages) chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
   }
 
-  // Lógica del botón de recomendaciones
-  btnRecommendations.addEventListener('click', () => {
-    window.location.href = 'recommendations.html';
-  });
+  if (btnRecommendations) {
+    btnRecommendations.addEventListener('click', () => {
+      window.location.href = 'recommendations.html';
+    });
+  }
 });
