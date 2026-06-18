@@ -16,35 +16,35 @@
 <body class="flex flex-col justify-between min-h-screen relative">
 
   <!-- Header -->
-  <header class="w-full py-5 px-6 md:px-12 glass-panel border-b border-gray-800 sticky top-0 z-50">
+  <header class="w-full py-4 px-6 md:px-12 glass-panel border-b border-slate-800/60 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
       <a href="index.html" class="flex items-center space-x-3 group">
-        <div class="w-10 h-10 rounded-lg bg-gradient-gamer flex items-center justify-center text-white text-xl font-bold group-hover:scale-110 transition-transform duration-300">
+        <div class="w-9 h-9 rounded-lg bg-gradient-gamer flex items-center justify-center text-white text-lg font-bold">
           <i class="fa-solid fa-gamepad"></i>
         </div>
-        <span class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500 font-gamer">
-          GAMER<span class="text-white group-hover:text-cyan-400 transition-colors duration-300">DEX</span>
+        <span class="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-fuchsia-500 font-gamer">
+          GAMER<span class="text-white group-hover:text-sky-400 transition-colors duration-300">DEX</span>
         </span>
       </a>
-      <a href="index.html" class="px-4 py-2 text-sm font-semibold rounded-lg bg-slate-900 border border-slate-800 text-gray-300 hover:text-cyan-400 hover:border-cyan-500/50 transition-all duration-300 flex items-center">
+      <a href="index.html" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-900 border border-slate-800 text-gray-300 hover:text-sky-400 hover:border-sky-500/30 transition-all flex items-center">
         <i class="fa-solid fa-arrow-left mr-2"></i> Regresar al inicio
       </a>
     </div>
   </header>
 
   <!-- Banner Dinámico del Juego -->
-  <div id="hero-banner" class="w-full h-[30vh] md:h-[45vh] bg-cover bg-center relative flex items-end justify-start transition-all duration-500 ease-in-out border-b border-slate-800/80">
+  <div id="hero-banner" class="w-full h-[25vh] md:h-[35vh] bg-cover bg-center relative flex items-end justify-start border-b border-slate-800/40">
     <!-- Overlay gradiente oscuro -->
     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"></div>
-    <div class="max-w-7xl mx-auto w-full px-6 md:px-12 pb-8 relative z-10 flex items-center gap-6">
-      <div id="game-thumbnail" class="w-24 h-32 md:w-36 md:h-48 rounded-xl overflow-hidden border-2 border-white/10 hidden md:block shadow-2xl">
+    <div class="max-w-7xl mx-auto w-full px-6 md:px-12 pb-6 relative z-10 flex items-center gap-5">
+      <div id="game-thumbnail" class="w-20 h-28 md:w-28 md:h-38 rounded-lg overflow-hidden border border-white/5 hidden md:block shadow-lg">
         <!-- Inyectado dinámicamente -->
       </div>
       <div class="flex-grow">
-        <div id="game-genre-tag" class="inline-block px-3 py-1 text-xs rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 mb-3 font-semibold uppercase tracking-wider">
+        <div id="game-genre-tag" class="inline-block px-2 py-0.5 text-[10px] rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 mb-2 font-bold uppercase tracking-wider">
           Cargando género...
         </div>
-        <h1 id="game-title-header" class="text-3xl md:text-5xl lg:text-6xl font-black text-white font-gamer leading-tight">
+        <h1 id="game-title-header" class="text-2xl md:text-4xl lg:text-5xl font-black text-white font-gamer leading-tight uppercase">
           Cargando videojuego...
         </h1>
       </div>
@@ -52,127 +52,159 @@
   </div>
 
   <!-- Main Content Area -->
-  <main class="flex-grow max-w-7xl mx-auto w-full px-6 md:px-12 py-12 relative">
+  <main class="flex-grow max-w-7xl mx-auto w-full px-6 md:px-12 py-10 relative">
     
     <!-- SPINNER DE CARGA -->
     <div id="loading-spinner" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 z-20 min-h-[300px]">
-      <div class="w-16 h-16 border-4 border-slate-800 rounded-full animate-spin-neon mb-4"></div>
-      <p class="text-cyan-400 text-lg font-gamer uppercase tracking-widest animate-pulse">Consultando base de datos...</p>
+      <div class="w-12 h-12 border-4 border-slate-800 rounded-full animate-spin-neon mb-3"></div>
+      <p class="text-sky-400 text-xs font-gamer uppercase tracking-widest animate-pulse">Consultando base de datos...</p>
     </div>
 
     <!-- CONTENEDOR DE ERROR -->
-    <div id="error-container" class="hidden glass-panel p-8 rounded-2xl border border-red-500/30 bg-red-950/20 max-w-xl mx-auto text-center my-12">
-      <div class="w-16 h-16 bg-red-500/10 border border-red-500/30 rounded-full flex items-center justify-center text-red-500 text-3xl mx-auto mb-4">
+    <div id="error-container" class="hidden glass-panel p-8 rounded-xl border border-red-500/20 bg-red-950/10 max-w-xl mx-auto text-center my-10">
+      <div class="w-12 h-12 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center text-red-500 text-2xl mx-auto mb-3">
         <i class="fa-solid fa-triangle-exclamation"></i>
       </div>
-      <h3 class="text-xl font-bold font-gamer text-white mb-2 uppercase">Juego no encontrado</h3>
-      <p id="error-detail" class="text-gray-400 mb-6">No hemos podido recuperar la información del juego solicitado. Asegúrate de escribir el nombre de forma similar a como se conoce oficialmente.</p>
-      <a href="index.html" class="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-gamer text-white font-bold hover:scale-105 transition-transform duration-300">
+      <h3 class="text-lg font-bold font-gamer text-white mb-1 uppercase">Juego no encontrado</h3>
+      <p id="error-detail" class="text-xs text-gray-400 mb-5">No hemos podido recuperar la información del juego solicitado.</p>
+      <a href="index.html" class="inline-flex items-center px-5 py-2.5 rounded-lg bg-gradient-gamer text-white text-xs font-bold hover:scale-105 transition-transform duration-300">
         <i class="fa-solid fa-search mr-2"></i> Intentar otra búsqueda
       </a>
     </div>
 
-    <!-- CONTENIDO PRINCIPAL (Oculto al cargar) -->
+    <!-- CONTENIDO PRINCIPAL -->
     <div id="details-content" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
       
-      <!-- Columna 1: Información RAWG API (Ficha Técnica) -->
-      <div class="lg:col-span-2 space-y-6">
-        <div class="glass-panel p-6 md:p-8 rounded-2xl border border-slate-800">
-          <h2 class="text-2xl font-bold mb-6 font-gamer text-cyan-400 flex items-center">
-            <i class="fa-solid fa-circle-info mr-3"></i> Ficha Técnica
+      <!-- Columna Principal (2 Tercios): Ficha, Reseña y Multimedia -->
+      <div class="lg:col-span-2 space-y-8">
+        
+        <!-- Ficha Técnica -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60">
+          <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
+            <i class="fa-solid fa-circle-info mr-2.5"></i> Ficha Técnica
           </h2>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Fecha Lanzamiento -->
-            <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80">
-              <span class="text-xs uppercase tracking-wider text-gray-500 block mb-1">Fecha de Lanzamiento</span>
-              <span id="game-release" class="text-lg font-semibold text-white">Cargando...</span>
+            <div class="p-3.5 rounded-lg bg-slate-900/40 border border-slate-850">
+              <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-0.5 font-bold">Fecha de Lanzamiento</span>
+              <span id="game-release" class="text-sm font-semibold text-white">Cargando...</span>
             </div>
             
             <!-- Plataformas -->
-            <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80">
-              <span class="text-xs uppercase tracking-wider text-gray-500 block mb-1">Plataformas Disponibles</span>
-              <span id="game-platforms" class="text-lg font-semibold text-white">Cargando...</span>
+            <div class="p-3.5 rounded-lg bg-slate-900/40 border border-slate-850">
+              <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-0.5 font-bold">Plataformas Disponibles</span>
+              <span id="game-platforms" class="text-sm font-semibold text-white">Cargando...</span>
             </div>
 
-            <!-- Desarrolladores -->
-            <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80">
-              <span class="text-xs uppercase tracking-wider text-gray-500 block mb-1">Puntuación Metacritic</span>
+            <!-- Metacritic Score -->
+            <div class="p-3.5 rounded-lg bg-slate-900/40 border border-slate-850">
+              <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-0.5 font-bold">Puntuación Metacritic</span>
               <div class="flex items-center space-x-2">
-                <span id="game-metacritic" class="text-lg font-black px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">N/D</span>
-                <span class="text-xs text-gray-400 font-semibold">Calificación de la prensa</span>
+                <span id="game-metacritic" class="text-xs font-black px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">N/D</span>
+                <span class="text-[10px] text-gray-400 font-semibold">Prensa especializada</span>
               </div>
             </div>
 
             <!-- Géneros -->
-            <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800/80">
-              <span class="text-xs uppercase tracking-wider text-gray-500 block mb-1">Géneros del Juego</span>
-              <span id="game-genres" class="text-lg font-semibold text-white">Cargando...</span>
+            <div class="p-3.5 rounded-lg bg-slate-900/40 border border-slate-850">
+              <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-0.5 font-bold">Géneros del Juego</span>
+              <span id="game-genres" class="text-sm font-semibold text-white">Cargando...</span>
             </div>
           </div>
-
-          <!-- Rating Star Container -->
-          <div class="mt-8 pt-6 border-t border-slate-800/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <span class="text-xs uppercase tracking-wider text-gray-500 block mb-1">Calificación Promedio de Usuarios (RAWG)</span>
-              <div class="flex items-center space-x-1">
-                <div id="stars-rating" class="text-amber-400 flex space-x-1">
-                  <!-- Estrellas generadas por JS -->
-                </div>
-                <span id="rating-number" class="text-sm font-bold text-gray-300 ml-2">0/5</span>
-              </div>
-            </div>
-            <div id="rawg-link-container">
-              <!-- Enlace externo a RAWG -->
-            </div>
-          </div>
-
         </div>
+
+        <!-- Sinopsis / Reseña Principal -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60">
+          <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
+            <i class="fa-solid fa-file-lines mr-2.5"></i> Reseña y Sinopsis
+          </h2>
+          <!-- Aquí se inyectará la descripción -->
+          <div id="game-description" class="text-sm text-gray-300 leading-relaxed space-y-3">
+            <p>Obteniendo sinopsis de la base de datos de RAWG...</p>
+          </div>
+        </div>
+
+        <!-- Tráiler Oficial -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60">
+          <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
+            <i class="fa-solid fa-film mr-2.5"></i> Tráiler Oficial
+          </h2>
+          <!-- Contenedor del reproductor de video -->
+          <div id="trailer-section">
+            <div class="text-gray-500 text-xs py-10 text-center bg-slate-900/30 rounded-xl border border-dashed border-slate-800">
+              Buscando tráiler del juego...
+            </div>
+          </div>
+        </div>
+
+        <!-- Galería de Capturas (Screenshots) -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60">
+          <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
+            <i class="fa-solid fa-images mr-2.5"></i> Galería de Capturas
+          </h2>
+          <!-- Rejilla de Imágenes -->
+          <div id="screenshots-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="col-span-full text-gray-500 text-xs py-10 text-center bg-slate-900/30 rounded-xl border border-dashed border-slate-800">
+              Cargando galería de imágenes...
+            </div>
+          </div>
+        </div>
+
+        <!-- Comentarios y Valoraciones de Fuentes -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60">
+          <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
+            <i class="fa-solid fa-comments mr-2.5"></i> Valoraciones de la Comunidad
+          </h2>
+          <div id="comments-section" class="space-y-4">
+            <!-- Comentarios inyectados dinámicamente o estáticos estilizados -->
+          </div>
+        </div>
+
       </div>
 
-      <!-- Columna 2: Comparativa de Precios CheapShark API -->
-      <div class="lg:col-span-1">
-        <div class="glass-panel p-6 md:p-8 rounded-2xl border border-slate-800 relative overflow-hidden flex flex-col justify-between h-full min-h-[400px]">
-          <!-- Luces decorativas en la tarjeta -->
-          <div class="absolute w-40 h-40 bg-fuchsia-500/5 rounded-full blur-2xl -top-10 -right-10"></div>
-          
+      <!-- Columna Lateral (1 Tercio): Ofertas y Chatbot -->
+      <div class="lg:col-span-1 space-y-8">
+        
+        <!-- Tarjeta de Precios CheapShark -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60 relative overflow-hidden flex flex-col justify-between min-h-[350px]">
           <div>
-            <h2 class="text-2xl font-bold mb-6 font-gamer text-fuchsia-400 flex items-center">
-              <i class="fa-solid fa-tags mr-3"></i> Ofertas de PC
+            <h2 class="text-lg font-bold mb-4 font-gamer text-fuchsia-400 flex items-center uppercase">
+              <i class="fa-solid fa-tags mr-2.5"></i> Ofertas de PC
             </h2>
 
             <!-- Precio Histórico Más Bajo -->
-            <div class="p-4 rounded-xl bg-fuchsia-950/20 border border-fuchsia-500/20 mb-6 flex justify-between items-center">
+            <div class="p-3.5 rounded-lg bg-fuchsia-950/10 border border-fuchsia-500/15 mb-5 flex justify-between items-center">
               <div>
-                <span class="text-xs uppercase tracking-wider text-fuchsia-400 font-semibold block mb-0.5">Precio Histórico Más Bajo</span>
-                <span class="text-xs text-gray-500">Registrado en CheapShark</span>
+                <span class="text-[10px] uppercase tracking-wider text-fuchsia-400 font-bold block mb-0.5">Precio Más Bajo</span>
+                <span class="text-[9px] text-gray-500">Histórico de CheapShark</span>
               </div>
-              <span id="cheapest-historic" class="text-3xl font-black text-white font-gamer">N/D</span>
+              <span id="cheapest-historic" class="text-2xl font-black text-white font-gamer">N/D</span>
             </div>
 
             <!-- Listado de Ofertas Vigentes -->
-            <div>
-              <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Mejores Ofertas del Día</h3>
-              <div id="offers-list" class="space-y-3">
-                <!-- Ofertas generadas dinámicamente -->
-                <div class="text-gray-500 text-sm py-4 text-center">
-                  Buscando ofertas disponibles en tiendas...
+            <div class="space-y-3">
+              <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Precios del Día</h3>
+              <div id="offers-list" class="space-y-2.5">
+                <div class="text-gray-500 text-xs py-4 text-center">
+                  Buscando ofertas...
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Botón de Redirección Alternativas Gratis (Abajo en la tarjeta de precios) -->
-          <div class="mt-8 pt-6 border-t border-slate-800/80">
+          <!-- Botón de Recomendación Gratis -->
+          <div class="mt-6 pt-4 border-t border-slate-800/60">
             <button 
               id="btn-recommendations" 
-              class="w-full py-4 px-4 rounded-xl bg-gradient-gamer text-white font-bold hover:scale-[1.02] shadow-lg shadow-cyan-500/15 hover:shadow-fuchsia-500/20 transition-all duration-300 font-gamer text-center text-sm md:text-base flex items-center justify-center gap-2 group uppercase tracking-wider"
+              class="w-full py-3.5 px-4 rounded-lg bg-gradient-gamer text-white font-bold hover:scale-[1.01] transition-all duration-300 font-gamer text-center text-xs flex items-center justify-center gap-2 group uppercase tracking-wider shadow"
             >
-              <span>¿Muy caro? Ver alternativas gratis</span>
+              <span>Ver alternativas gratis</span>
               <i class="fa-solid fa-circle-arrow-right group-hover:translate-x-1 transition-transform"></i>
             </button>
           </div>
         </div>
+
       </div>
 
     </div>
@@ -183,49 +215,49 @@
   <div id="chatbot-container" class="fixed bottom-6 right-6 flex flex-col items-end z-50">
     
     <!-- Ventana de Chat (Oculta por defecto) -->
-    <div id="chatbot-window" class="hidden w-[90vw] sm:w-[380px] h-[450px] rounded-2xl glass-panel border border-fuchsia-500/30 flex flex-col overflow-hidden mb-4 transition-all duration-300">
+    <div id="chatbot-window" class="hidden w-[90vw] sm:w-[350px] h-[400px] rounded-xl glass-panel border border-fuchsia-500/20 flex flex-col overflow-hidden mb-3 transition-all duration-300">
       
       <!-- Cabecera del Chat -->
-      <div class="px-5 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <div class="w-9 h-9 rounded-lg bg-gradient-gamer flex items-center justify-center text-white text-lg shadow-md shadow-fuchsia-500/10">
+      <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-800/60 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-lg bg-gradient-gamer flex items-center justify-center text-white text-base">
             <i class="fa-solid fa-robot"></i>
           </div>
           <div>
-            <h4 class="text-sm font-bold text-white font-gamer tracking-wide">Asistente Gamer AI</h4>
-            <span class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> En línea
+            <h4 class="text-xs font-bold text-white font-gamer tracking-wide">Asistente Gamer AI</h4>
+            <span class="text-[9px] text-emerald-400 font-semibold flex items-center gap-1">
+              <span class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span> En línea
             </span>
           </div>
         </div>
         <button id="chatbot-close-btn" class="text-gray-400 hover:text-white transition-colors duration-200">
-          <i class="fa-solid fa-xmark text-lg"></i>
+          <i class="fa-solid fa-xmark text-base"></i>
         </button>
       </div>
 
       <!-- Mensajes del Chat -->
-      <div id="chatbot-messages" class="flex-grow p-4 overflow-y-auto space-y-3 text-sm flex flex-col">
+      <div id="chatbot-messages" class="flex-grow p-4 overflow-y-auto space-y-3 text-xs flex flex-col">
         <!-- Mensajes iniciales -->
         <div class="chat-bubble-bot p-3 max-w-[85%] self-start text-gray-200">
-          ¡Hola! Soy tu <strong>Asistente Gamer AI</strong>. ¿Tienes dudas sobre este juego? Pregúntame sobre su historia, mecánicas o cualquier truco. ¡Estoy aquí para ayudarte! 🎮
+          ¡Hola! Soy tu <strong>Asistente Gamer AI</strong>. ¿Tienes dudas sobre este juego? Pregúntame sobre su historia, mecánicas o trucos. 🎮
         </div>
       </div>
 
       <!-- Formulario de Entrada del Chat -->
-      <form id="chatbot-form" class="p-3 bg-slate-900/80 border-t border-slate-800 flex items-center gap-2">
+      <form id="chatbot-form" class="p-2.5 bg-slate-900/80 border-t border-slate-800/60 flex items-center gap-2">
         <input 
           type="text" 
           id="chatbot-input" 
           placeholder="Pregunta algo sobre el juego..." 
-          class="flex-grow py-2 px-3 bg-slate-950/60 border border-slate-800 rounded-lg text-white text-xs placeholder-gray-500 focus:outline-none focus:border-fuchsia-500 focus:shadow-[0_0_8px_rgba(217,70,239,0.2)] transition-all"
+          class="flex-grow py-2 px-3 bg-slate-950/60 border border-slate-800/80 rounded-lg text-white text-xs placeholder-gray-500 focus:outline-none focus:border-fuchsia-500 transition-all"
           required
           autocomplete="off"
         >
         <button 
           type="submit" 
           id="chatbot-send-btn"
-          class="w-8 h-8 rounded-lg bg-gradient-gamer text-white hover:scale-105 transition-all shadow-md flex items-center justify-center text-xs"
-          aria-label="Enviar mensaje"
+          class="w-7 h-7 rounded-lg bg-gradient-gamer text-white hover:scale-105 transition-all flex items-center justify-center text-[10px]"
+          aria-label="Enviar"
         >
           <i class="fa-solid fa-paper-plane"></i>
         </button>
@@ -235,22 +267,22 @@
     <!-- Botón Toggle de apertura del Chat -->
     <button 
       id="chatbot-toggle-btn" 
-      class="w-14 h-14 rounded-full bg-gradient-gamer text-white flex items-center justify-center text-2xl shadow-lg shadow-fuchsia-500/20 hover:scale-105 transition-all duration-300 relative pulse-ring-magenta cursor-pointer"
+      class="w-12 h-12 rounded-full bg-gradient-gamer text-white flex items-center justify-center text-xl shadow-md shadow-fuchsia-500/10 hover:scale-105 transition-all duration-300 relative pulse-ring-magenta cursor-pointer"
       aria-label="Abrir Asistente AI"
     >
       <i class="fa-solid fa-comment-dots"></i>
       <!-- Indicador de notificación inicial -->
-      <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-cyan-400 rounded-full border-2 border-slate-950 animate-ping"></span>
-      <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-cyan-400 rounded-full border-2 border-slate-950"></span>
+      <span class="absolute -top-0.5 -right-0.5 w-3 h-3 bg-sky-400 rounded-full border-2 border-slate-950 animate-ping"></span>
+      <span class="absolute -top-0.5 -right-0.5 w-3 h-3 bg-sky-400 rounded-full border-2 border-slate-950"></span>
     </button>
   </div>
 
   <!-- Footer -->
-  <footer class="w-full py-6 px-6 glass-panel border-t border-gray-800 text-center text-sm text-gray-500 relative z-10">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+  <footer class="w-full py-5 px-6 glass-panel border-t border-slate-800/40 text-center text-xs text-gray-500 relative z-10">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
       <p>&copy; 2026 GamerDex. Proyecto Académico de Integración de APIs Asíncronas.</p>
-      <div class="flex space-x-6 text-gray-400">
-        <span class="hover:text-cyan-400 transition-colors cursor-pointer"><i class="fa-solid fa-bolt mr-1"></i> RAWG</span>
+      <div class="flex space-x-5 text-gray-400">
+        <span class="hover:text-sky-400 transition-colors cursor-pointer"><i class="fa-solid fa-bolt mr-1"></i> RAWG</span>
         <span class="hover:text-fuchsia-400 transition-colors cursor-pointer"><i class="fa-solid fa-tags mr-1"></i> CheapShark</span>
         <span class="hover:text-emerald-400 transition-colors cursor-pointer"><i class="fa-solid fa-gamepad mr-1"></i> FreeToGame</span>
       </div>
