@@ -179,6 +179,72 @@
 
   </main>
 
+  <!-- Chatbot Gamer AI Flotante -->
+  <div id="chatbot-container" class="fixed bottom-6 right-6 flex flex-col items-end z-50">
+    
+    <!-- Ventana de Chat (Oculta por defecto) -->
+    <div id="chatbot-window" class="hidden w-[90vw] sm:w-[380px] h-[450px] rounded-2xl glass-panel border border-fuchsia-500/30 flex flex-col overflow-hidden mb-4 transition-all duration-300">
+      
+      <!-- Cabecera del Chat -->
+      <div class="px-5 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-lg bg-gradient-gamer flex items-center justify-center text-white text-lg shadow-md shadow-fuchsia-500/10">
+            <i class="fa-solid fa-robot"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-white font-gamer tracking-wide">Asistente Gamer AI</h4>
+            <span class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> En línea
+            </span>
+          </div>
+        </div>
+        <button id="chatbot-close-btn" class="text-gray-400 hover:text-white transition-colors duration-200">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Mensajes del Chat -->
+      <div id="chatbot-messages" class="flex-grow p-4 overflow-y-auto space-y-3 text-sm flex flex-col">
+        <!-- Mensajes iniciales -->
+        <div class="chat-bubble-bot p-3 max-w-[85%] self-start text-gray-200">
+          ¡Hola! Soy tu <strong>Asistente Gamer AI</strong>. ¿Tienes dudas sobre este juego? Pregúntame sobre su historia, mecánicas o cualquier truco. ¡Estoy aquí para ayudarte! 🎮
+        </div>
+      </div>
+
+      <!-- Formulario de Entrada del Chat -->
+      <form id="chatbot-form" class="p-3 bg-slate-900/80 border-t border-slate-800 flex items-center gap-2">
+        <input 
+          type="text" 
+          id="chatbot-input" 
+          placeholder="Pregunta algo sobre el juego..." 
+          class="flex-grow py-2 px-3 bg-slate-950/60 border border-slate-800 rounded-lg text-white text-xs placeholder-gray-500 focus:outline-none focus:border-fuchsia-500 focus:shadow-[0_0_8px_rgba(217,70,239,0.2)] transition-all"
+          required
+          autocomplete="off"
+        >
+        <button 
+          type="submit" 
+          id="chatbot-send-btn"
+          class="w-8 h-8 rounded-lg bg-gradient-gamer text-white hover:scale-105 transition-all shadow-md flex items-center justify-center text-xs"
+          aria-label="Enviar mensaje"
+        >
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+    </div>
+
+    <!-- Botón Toggle de apertura del Chat -->
+    <button 
+      id="chatbot-toggle-btn" 
+      class="w-14 h-14 rounded-full bg-gradient-gamer text-white flex items-center justify-center text-2xl shadow-lg shadow-fuchsia-500/20 hover:scale-105 transition-all duration-300 relative pulse-ring-magenta cursor-pointer"
+      aria-label="Abrir Asistente AI"
+    >
+      <i class="fa-solid fa-comment-dots"></i>
+      <!-- Indicador de notificación inicial -->
+      <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-cyan-400 rounded-full border-2 border-slate-950 animate-ping"></span>
+      <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-cyan-400 rounded-full border-2 border-slate-950"></span>
+    </button>
+  </div>
+
   <!-- Footer -->
   <footer class="w-full py-6 px-6 glass-panel border-t border-gray-800 text-center text-sm text-gray-500 relative z-10">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
