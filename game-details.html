@@ -220,6 +220,22 @@
           </div>
         </div>
 
+        <!-- Tarjeta de Juegos Relacionados -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60 flex flex-col">
+          <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
+            <i class="fa-solid fa-gamepad mr-2.5"></i> Juegos Relacionados
+          </h2>
+          <!-- Spinner de carga para juegos relacionados -->
+          <div id="loading-related" class="py-6 flex flex-col items-center justify-center">
+            <div class="w-8 h-8 border-3 border-slate-800 rounded-full animate-spin-neon mb-2"></div>
+            <span class="text-[10px] text-gray-500 font-gamer uppercase tracking-widest">Buscando relacionados...</span>
+          </div>
+          <!-- Listado de juegos relacionados -->
+          <div id="related-list" class="hidden space-y-3.5">
+            <!-- Inyectado por JS -->
+          </div>
+        </div>
+
       </div>
 
     </div>

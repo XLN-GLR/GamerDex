@@ -31,9 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadingTrends = document.getElementById('loading-trends');
   const trendsGrid = document.getElementById('trends-grid');
 
-  const loadingReleases = document.getElementById('loading-releases');
-  const releasesGrid = document.getElementById('releases-grid');
-
   const loadingFree = document.getElementById('loading-free');
   const freeGrid = document.getElementById('free-grid');
 
@@ -113,24 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-    // 2. Cargar Próximos Lanzamientos (RAWG - Rango de fechas más robusto)
-    fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&dates=2025-06-01,2026-12-31&ordering=-added&page_size=4`)
-      .then(res => {
-        if (!res.ok) throw new Error("No se pudieron obtener lanzamientos de RAWG.");
-        return res.json();
-      })
-      .then(data => {
-        const games = data.results || [];
-        renderGrid(releasesGrid, games);
-        if (loadingReleases) loadingReleases.classList.add('hidden');
-        if (releasesGrid) releasesGrid.classList.remove('hidden');
-      })
-      .catch(err => {
-        console.error("Error cargando lanzamientos:", err);
-        if (loadingReleases) {
-          loadingReleases.innerHTML = `<span class="text-xs text-gray-500 py-4"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> No se pudieron cargar los próximos lanzamientos.</span>`;
-        }
-      });
+
 
     // 3. Cargar Juegos Gratuitos Populares (FreeToGame con fallback de CORS allorigins /get)
     const f2pUrl = `https://www.freetogame.com/api/games?sort-by=popularity`;

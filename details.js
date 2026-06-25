@@ -114,6 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchTrailers(slug);
         renderComments(game);
 
+        const firstGenreSlug = (game.genres && game.genres.length > 0) ? game.genres[0].slug : null;
+        fetchRelatedGames(slug, firstGenreSlug);
+
         return game;
       })
       // Encadenado directo sin llaves a CheapShark por el nombre exacto de RAWG
@@ -253,6 +256,122 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error(err);
         trailerSection.innerHTML = `<div class="text-slate-500 text-xs text-center py-6">Tráiler no disponible.</div>`;
       });
+  };
+
+  // --- OBTENER JUEGOS RELACIONADOS (Sagas o Género) ---
+  const fetchRelatedGames = (slug, genreSlug) => {
+    const loadingRelated = document.getElementById('loading-related');
+    const relatedList = document.getElementById('related-list');
+    
+    if (!relatedList) return;
+    
+    // Primero intentamos con el endpoint de game-series de RAWG
+    fetch(`https://api.rawg.io/api/games/${slug}/game-series?key=${RAWG_KEY}&page_size=4`)
+      .then(res => {
+        if (!res.ok) throw new Error("Fallo series");
+        return res.json();
+      })
+      .then(data => {
+        let list = data.results || [];
+        // Si hay menos de 3 juegos en la serie, completamos o reemplazamos con populares del mismo género
+        if (list.length < 3 && genreSlug) {
+          return fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&genres=${genreSlug}&ordering=-added&page_size=6`)
+            .then(res => {
+              if (!res.ok) throw new Error("Fallo populares");
+              return res.json();
+            })
+            .then(genreData => {
+              const genreList = genreData.results || [];
+              // Filtrar el juego actual para que no se sugiera a sí mismo
+              const filteredGenre = genreList.filter(g => g.slug !== slug);
+              
+              // Combinar: series primero, luego género (sin duplicados)
+              const combined = [...list];
+              filteredGenre.forEach(item => {
+                if (!combined.some(c => c.slug === item.slug) && combined.length < 4) {
+                  combined.push(item);
+                }
+              });
+              
+              renderRelatedList(combined);
+            });
+        } else {
+          renderRelatedList(list.slice(0, 4));
+        }
+      })
+      .catch(err => {
+        console.error("Error al obtener juegos relacionados:", err);
+        // Si todo falla, intentar cargar por género directamente
+        if (genreSlug) {
+          fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&genres=${genreSlug}&ordering=-added&page_size=5`)
+            .then(res => res.json())
+            .then(genreData => {
+              const list = (genreData.results || []).filter(g => g.slug !== slug).slice(0, 4);
+              renderRelatedList(list);
+            })
+            .catch(genreErr => {
+              console.error("Error definitivo en relacionados:", genreErr);
+              if (loadingRelated) {
+                loadingRelated.innerHTML = `<span class="text-[10px] text-gray-500 py-2"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-1.5"></i> No se encontraron juegos relacionados.</span>`;
+              }
+            });
+        } else {
+          if (loadingRelated) {
+            loadingRelated.innerHTML = `<span class="text-[10px] text-gray-500 py-2"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-1.5"></i> No se encontraron juegos relacionados.</span>`;
+          }
+        }
+      });
+  };
+
+  const renderRelatedList = (games) => {
+    const loadingRelated = document.getElementById('loading-related');
+    const relatedList = document.getElementById('related-list');
+    
+    if (!relatedList) return;
+    relatedList.innerHTML = "";
+    
+    if (loadingRelated) loadingRelated.classList.add('hidden');
+    relatedList.classList.remove('hidden');
+    
+    if (games.length === 0) {
+      relatedList.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No hay juegos relacionados disponibles.</p>`;
+      return;
+    }
+    
+    games.forEach(game => {
+      const item = document.createElement('div');
+      item.className = "flex items-center gap-3 p-2.5 rounded-lg bg-slate-900/30 border border-slate-850 hover:border-sky-500/30 hover:bg-slate-900/50 transition-all group cursor-pointer";
+      
+      const thumb = game.background_image 
+        ? `<img src="${game.background_image}" class="w-12 h-10 object-cover rounded border border-slate-800 group-hover:scale-105 transition-transform" alt="${game.name}">`
+        : `<div class="w-12 h-10 bg-slate-800 rounded flex items-center justify-center text-slate-500"><i class="fa-solid fa-image text-xs"></i></div>`;
+      
+      const scoreTag = game.metacritic 
+        ? `<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${game.metacritic}</span>`
+        : '';
+        
+      item.innerHTML = `
+        ${thumb}
+        <div class="flex-grow min-w-0">
+          <p class="font-bold text-white text-xs truncate group-hover:text-sky-400 transition-colors">${game.name}</p>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="text-[10px] text-gray-400">${game.released ? new Date(game.released).getFullYear() : 'N/D'}</span>
+            ${scoreTag}
+          </div>
+        </div>
+        <div class="text-gray-500 group-hover:text-sky-400 transition-colors text-xs pr-1 flex items-center justify-center">
+          <i class="fa-solid fa-angle-right"></i>
+        </div>
+      `;
+      
+      item.addEventListener('click', () => {
+        localStorage.setItem('gamerdex_search_term', game.name);
+        localStorage.setItem('gamerdex_search_slug', game.slug);
+        window.location.href = `game-details.html?slug=${game.slug}&query=${encodeURIComponent(game.name)}`;
+      });
+      
+      relatedList.appendChild(item);
+    });
   };
 
   // --- RENDERIZAR COMENTARIOS DE FUENTES ---

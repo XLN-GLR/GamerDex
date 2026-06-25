@@ -32,6 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Obtener la categoría F2P correspondiente
   const f2pCategory = GENRE_MAP[genreSlug] || "action";
 
+  // Redirección segura a la vista de detalles
+  const executeSearch = (title) => {
+    localStorage.setItem('gamerdex_search_term', title);
+    localStorage.removeItem('gamerdex_search_slug');
+    window.location.href = 'game-details.html';
+  };
+
   // Función para obtener y renderizar los juegos gratis
   const fetchFreeGames = () => {
     loadingSpinner.classList.remove('hidden');
@@ -91,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const card = document.createElement('div');
-      card.className = "glass-panel rounded-2xl overflow-hidden neon-border-green flex flex-col justify-between group";
+      card.className = "glass-panel rounded-2xl overflow-hidden neon-border-green flex flex-col justify-between group cursor-pointer hover:border-emerald-500/30 hover:shadow-[0_4px_15px_rgba(16,185,129,0.03)] transition-all duration-300";
 
       card.innerHTML = `
         <div>
@@ -115,15 +122,27 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <!-- Pie de tarjeta -->
-        <div class="px-6 pb-6 pt-2 flex items-center justify-between border-t border-slate-800/40 mt-auto">
-          <span class="text-xs text-gray-500 flex items-center gap-1.5 font-semibold">
-            <i class="${platformIcon} text-emerald-400 text-sm"></i> ${game.platform}
-          </span>
-          <a href="${game.game_url}" target="_blank" class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white transition-all duration-300">
-            Jugar Gratis <i class="fa-solid fa-circle-arrow-right ml-1"></i>
-          </a>
+        <div class="px-6 pb-6 pt-2 flex flex-col gap-3 border-t border-slate-800/40 mt-auto">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500 flex items-center gap-1.5 font-semibold">
+              <i class="${platformIcon} text-emerald-400 text-sm"></i> ${game.platform}
+            </span>
+          </div>
+          <div class="grid grid-cols-2 gap-2.5 w-full">
+            <button class="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-lg bg-slate-900 border border-slate-800 text-gray-300 hover:text-sky-400 hover:border-sky-500/30 transition-all text-center flex items-center justify-center gap-1">
+              Ver Reseña <i class="fa-solid fa-circle-info"></i>
+            </button>
+            <a href="${game.game_url}" target="_blank" class="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white transition-all duration-300 text-center flex items-center justify-center gap-1">
+              Jugar Gratis <i class="fa-solid fa-circle-arrow-right"></i>
+            </a>
+          </div>
         </div>
       `;
+
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('a')) return;
+        executeSearch(game.title);
+      });
 
       catalogGrid.appendChild(card);
     });
