@@ -624,7 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- RENDERIZADO BÁSICO DE RAWG DEFENSIVO (Evitar TypeErrors de innerHTML) ---
   function renderRawgData(game) {
     if (heroBanner && game.background_image) {
-      heroBanner.style.backgroundImage = `url('${game.background_image}')`;
+      heroBanner.style.backgroundImage = `linear-gradient(to top, #090d16 0%, rgba(9, 13, 22, 0.4) 60%, transparent 100%), url('${game.background_image}')`;
     }
     
     if (gameThumbnail) {

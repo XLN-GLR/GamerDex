@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         localStorage.removeItem('gamerdex_search_slug');
       }
-      window.location.href = 'game-details.html?v=1.0.6';
+      window.location.href = 'game-details.html?v=1.0.7';
     } catch (e) {
       console.error('Error al acceder al localStorage:', e);
       showError('Hubo un problema de almacenamiento en tu navegador. Por favor, habilita las cookies.');
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data && data.results && data.results.length > 0) {
           const featured = data.results[0];
           if (heroHighlight && featured.background_image) {
-            heroHighlight.style.backgroundImage = `url('${featured.background_image}')`;
+            heroHighlight.style.backgroundImage = `linear-gradient(to top, #090d16 0%, rgba(9, 13, 22, 0.4) 60%, transparent 100%), url('${featured.background_image}')`;
           }
           if (heroTitle) heroTitle.textContent = featured.name;
           if (heroDesc) {
