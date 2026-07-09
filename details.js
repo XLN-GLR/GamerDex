@@ -1,6 +1,20 @@
 // Clave de API de RAWG - Proporcionada por el usuario
 const RAWG_KEY = "a853e0e4673547d58acdc79a70494bb2";
 
+// Detección de país y app de Steam para precios regionalizados en tiempo real
+let userCountryCode = "US";
+let currentSteamAppId = null;
+
+fetch("https://api.country.is")
+  .then(res => res.ok ? res.json() : null)
+  .then(data => {
+    if (data && data.country) {
+      userCountryCode = data.country;
+      console.log("País del usuario detectado para precios regionales:", userCountryCode);
+    }
+  })
+  .catch(err => console.warn("No se pudo autodetectar el país del usuario para precios de Steam:", err));
+
 // Contexto global del videojuego cargado para alimentar a Gemini
 let currentGameContext = {
   name: "Videojuego",
@@ -215,9 +229,14 @@ document.addEventListener('DOMContentLoaded', () => {
           if (cheapestHistoric) {
             cheapestHistoric.textContent = `$${dealDetails.cheapestPriceEver.price}`;
           }
+          
+          // Extraer y guardar el steamAppID actual para consultas dinámicas regionales
+          currentSteamAppId = (dealDetails.info && dealDetails.info.steamAppID) ? dealDetails.info.steamAppID : null;
+          
           renderOffers(dealDetails.deals);
         } else {
           if (cheapestHistoric) cheapestHistoric.textContent = "N/D";
+          currentSteamAppId = null;
         }
         finishLoading();
       })
@@ -700,9 +719,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const storeInfo = STORES_MAP[deal.storeID] || { icon: "fa-solid fa-cart-shopping", color: "hover:text-slate-400" };
       const savingPercent = Math.round(parseFloat(deal.savings));
       
+      const isSteam = deal.storeID === "1";
       const dealElement = document.createElement('div');
       dealElement.className = "flex items-center justify-between p-2.5 rounded-lg bg-slate-900/30 border border-slate-850 hover:border-slate-800 transition-all group cursor-pointer";
       
+      // Contenedores ID si es Steam para inyectar precio regional en tiempo real
+      const steamContainerId = isSteam && currentSteamAppId ? `steam-price-container-${currentSteamAppId}` : "";
+      const steamBadgeId = isSteam && currentSteamAppId ? `steam-badge-container-${currentSteamAppId}` : "";
+
       dealElement.innerHTML = `
         <div class="flex items-center space-x-2.5">
           <div class="w-8 h-8 rounded bg-slate-850 flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform ${storeInfo.color || 'hover:text-sky-400'}">
@@ -710,11 +734,13 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div>
             <span class="text-xs font-bold text-white block">${storeName}</span>
-            ${savingPercent > 0 ? `<span class="text-[8px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1 py-0.2 rounded uppercase">Ahorra ${savingPercent}%</span>` : ''}
+            <div id="${steamBadgeId}">
+              ${savingPercent > 0 ? `<span class="text-[8px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1 py-0.2 rounded uppercase">Ahorra ${savingPercent}%</span>` : ''}
+            </div>
           </div>
         </div>
         
-        <div class="text-right">
+        <div class="text-right" id="${steamContainerId}">
           <div class="text-sm font-black text-sky-400 font-gamer">$${deal.price}</div>
           ${savingPercent > 0 ? `<div class="text-[10px] text-gray-500 line-through">$${deal.retailPrice}</div>` : ''}
         </div>
@@ -726,6 +752,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
       offersList.appendChild(dealElement);
     });
+
+    // Lanzar actualización de precio regional en tiempo real si hay Steam en la lista
+    if (currentSteamAppId && uniqueDeals.some(d => d.storeID === "1")) {
+      updateSteamPriceRealtime(currentSteamAppId);
+    }
+  }
+
+  function updateSteamPriceRealtime(steamAppId) {
+    const steamUrl = `https://store.steampowered.com/api/appdetails?appids=${steamAppId}&cc=${userCountryCode}&filters=price_overview`;
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(steamUrl)}`;
+    
+    fetch(proxyUrl)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data[steamAppId] && data[steamAppId].success) {
+          const priceInfo = data[steamAppId].data.price_overview;
+          if (priceInfo) {
+            const container = document.getElementById(`steam-price-container-${steamAppId}`);
+            const badgeContainer = document.getElementById(`steam-badge-container-${steamAppId}`);
+            
+            if (container) {
+              const finalPrice = priceInfo.final_formatted;
+              const initialPrice = priceInfo.initial_formatted;
+              const discount = priceInfo.discount_percent;
+              
+              container.innerHTML = `
+                <div class="text-sm font-black text-sky-400 font-gamer">${finalPrice}</div>
+                ${discount > 0 ? `<div class="text-[10px] text-gray-500 line-through">${initialPrice}</div>` : ''}
+              `;
+              
+              if (badgeContainer) {
+                badgeContainer.innerHTML = discount > 0 
+                  ? `<span class="text-[8px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1 py-0.2 rounded uppercase">Ahorra ${discount}%</span>`
+                  : '';
+              }
+              console.log(`Precio de Steam actualizado en tiempo real para la región ${userCountryCode}:`, finalPrice);
+            }
+          }
+        }
+      })
+      .catch(err => console.warn("No se pudo actualizar el precio de Steam en tiempo real:", err));
   }
 
   function finishLoading() {
