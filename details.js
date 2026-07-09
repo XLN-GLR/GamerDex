@@ -116,7 +116,14 @@ document.addEventListener('DOMContentLoaded', () => {
         renderComments(game);
 
         const firstGenreSlug = (game.genres && game.genres.length > 0) ? game.genres[0].slug : null;
-        fetchRelatedGames(slug, firstGenreSlug);
+        
+        // Extraer un tag descriptivo significativo (evitando tags genéricos de plataforma/sistema)
+        const tags = game.tags || [];
+        const genericTags = ["singleplayer", "multiplayer", "steam-achievements", "steam-cloud", "full-controller-support", "partial-controller-support", "steam-trading-cards", "cloud-saves", "overlay"];
+        const significantTag = tags.find(t => t.language === "eng" && !genericTags.includes(t.slug));
+        const tagSlug = significantTag ? significantTag.slug : null;
+        
+        fetchRelatedGames(slug, firstGenreSlug, tagSlug);
 
         return game;
       })
@@ -269,13 +276,13 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // --- OBTENER JUEGOS RECOMENDADOS (Sagas o Género) ---
-  const fetchRelatedGames = (slug, genreSlug) => {
+  const fetchRelatedGames = (slug, genreSlug, tagSlug) => {
     const loadingRelated = document.getElementById('loading-related');
     const relatedList = document.getElementById('related-list');
     
     if (!relatedList) return;
     
-    // Primero intentamos con el endpoint de game-series de RAWG
+    // Primero intentamos con el endpoint de game-series de RAWG (esto obtiene las entregas de la misma saga!)
     fetch(`https://api.rawg.io/api/games/${slug}/game-series?key=${RAWG_KEY}&page_size=4`)
       .then(res => {
         if (!res.ok) throw new Error("Fallo series");
@@ -283,19 +290,23 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then(data => {
         let list = data.results || [];
-        // Si hay menos de 3 juegos en la serie, completamos o reemplazamos con populares del mismo género
-        if (list.length < 3 && genreSlug) {
-          return fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&genres=${genreSlug}&ordering=-added&page_size=6`)
+        
+        // Si hay menos de 3 juegos en la serie (es decir, no es una saga larga o es un juego independiente),
+        // completamos con juegos recomendados del mismo género y tag descriptivo
+        if (list.length < 3) {
+          let url = `https://api.rawg.io/api/games?key=${RAWG_KEY}&ordering=-added&page_size=6`;
+          if (genreSlug) url += `&genres=${genreSlug}`;
+          if (tagSlug) url += `&tags=${tagSlug}`;
+          
+          return fetch(url)
             .then(res => {
               if (!res.ok) throw new Error("Fallo populares");
               return res.json();
             })
             .then(genreData => {
               const genreList = genreData.results || [];
-              // Filtrar el juego actual para que no se sugiera a sí mismo
               const filteredGenre = genreList.filter(g => g.slug !== slug);
               
-              // Combinar: series primero, luego género (sin duplicados)
               const combined = [...list];
               filteredGenre.forEach(item => {
                 if (!combined.some(c => c.slug === item.slug) && combined.length < 4) {
@@ -304,6 +315,19 @@ document.addEventListener('DOMContentLoaded', () => {
               });
               
               renderRelatedList(combined);
+            })
+            .catch(err => {
+              console.warn("Fallo al filtrar por tag de recomendados, intentando solo género...", err);
+              // Fallback: usar solo género si falla la búsqueda combinada con tag
+              let fallbackUrl = `https://api.rawg.io/api/games?key=${RAWG_KEY}&page_size=6`;
+              if (genreSlug) fallbackUrl += `&genres=${genreSlug}`;
+              
+              return fetch(fallbackUrl)
+                .then(res => res.json())
+                .then(genreData => {
+                  const listOnlyGenre = (genreData.results || []).filter(g => g.slug !== slug).slice(0, 4);
+                  renderRelatedList(listOnlyGenre);
+                });
             });
         } else {
           renderRelatedList(list.slice(0, 4));
@@ -311,25 +335,23 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .catch(err => {
         console.error("Error al obtener recomendaciones de juegos:", err);
-        // Si todo falla, intentar cargar por género directamente
-        if (genreSlug) {
-          fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&genres=${genreSlug}&ordering=-added&page_size=5`)
-            .then(res => res.json())
-            .then(genreData => {
-              const list = (genreData.results || []).filter(g => g.slug !== slug).slice(0, 4);
-              renderRelatedList(list);
-            })
-            .catch(genreErr => {
-              console.error("Error definitivo en recomendaciones:", genreErr);
-              if (loadingRelated) {
-                loadingRelated.innerHTML = `<span class="text-[10px] text-gray-500 py-2"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-1.5"></i> No se encontraron juegos recomendados.</span>`;
-              }
-            });
-        } else {
-          if (loadingRelated) {
-            loadingRelated.innerHTML = `<span class="text-[10px] text-gray-500 py-2"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-1.5"></i> No se encontraron juegos recomendados.</span>`;
-          }
-        }
+        // Si falla la serie al inicio, intentar cargar por género y tag directamente
+        let url = `https://api.rawg.io/api/games?key=${RAWG_KEY}&ordering=-added&page_size=5`;
+        if (genreSlug) url += `&genres=${genreSlug}`;
+        if (tagSlug) url += `&tags=${tagSlug}`;
+        
+        fetch(url)
+          .then(res => res.json())
+          .then(genreData => {
+            const list = (genreData.results || []).filter(g => g.slug !== slug).slice(0, 4);
+            renderRelatedList(list);
+          })
+          .catch(genreErr => {
+            console.error("Error definitivo en recomendaciones:", genreErr);
+            if (loadingRelated) {
+              loadingRelated.innerHTML = `<span class="text-[10px] text-gray-500 py-2"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-1.5"></i> No se encontraron juegos recomendados.</span>`;
+            }
+          });
       });
   };
 
@@ -458,19 +480,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     gameDescription.innerHTML = `<p class="text-xs text-sky-400 font-semibold uppercase tracking-wider animate-pulse flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-ping"></span> Traduciendo sinopsis al español...</p>`;
 
-    // API pública de Google Translate (sin API key)
-    const targetUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=es&dt=t&q=${encodeURIComponent(plainText)}`;
+    // Dividir en párrafos para evitar truncado por longitud de la consulta GET de Google Translate
+    const paragraphs = plainText.split('\n').map(p => p.trim()).filter(p => p.length > 0);
 
-    fetch(targetUrl)
-      .then(res => {
-        if (!res.ok) throw new Error("Fallo de conexión en Google Translate");
-        return res.json();
-      })
-      .then(data => {
-        if (!data || !data[0]) throw new Error("Respuesta inválida de Google Translate");
-        
-        // Unir todos los fragmentos traducidos por oraciones
-        const translatedText = data[0].map(item => item[0]).join('');
+    const translationPromises = paragraphs.map(p => {
+      const targetUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=es&dt=t&q=${encodeURIComponent(p)}`;
+      return fetch(targetUrl)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data && data[0]) {
+            return data[0].map(item => item[0]).join('');
+          }
+          return p;
+        })
+        .catch(err => {
+          console.warn("Error en la traducción del párrafo:", err);
+          return p;
+        });
+    });
+
+    Promise.all(translationPromises)
+      .then(translatedParagraphs => {
+        const translatedText = translatedParagraphs.join('\n\n');
         
         gameDescription.innerHTML = `
           <div class="leading-relaxed space-y-3 whitespace-pre-line">${translatedText}</div>
@@ -499,14 +530,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       })
       .catch(err => {
-        console.error("Error en Google Translate, mostrando descripción original con aviso:", err);
-        // Fallback final: Mostrar el texto original en inglés con un mensaje
+        console.error("Error al unificar traducción:", err);
         gameDescription.innerHTML = `
-          <div class="p-3 mb-4 rounded-lg bg-amber-500/5 border border-amber-500/10 text-amber-400 text-[10px] flex items-center gap-2">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <span>La traducción automática no está disponible en este momento.</span>
-          </div>
-          <div class="leading-relaxed">
+          <div class="leading-relaxed whitespace-pre-line">
             ${rawDescriptionHtml}
           </div>
         `;
