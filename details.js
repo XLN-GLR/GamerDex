@@ -25,7 +25,17 @@ const STORES_MAP = {
   "25": { name: "Epic Games Store", icon: "fa-solid fa-folder-open", color: "hover:text-teal-400" }
 };
 
+let storesList = [];
+
 document.addEventListener('DOMContentLoaded', () => {
+  // Cargar tiendas de CheapShark dinámicamente
+  fetch('https://www.cheapshark.com/api/1.0/stores')
+    .then(res => res.ok ? res.json() : [])
+    .then(data => {
+      storesList = data;
+    })
+    .catch(err => console.error("Error cargando tiendas de CheapShark:", err));
+
   // --- LEER ENTRADA DESDE URL O LOCALSTORAGE (Soporte Híbrido Avanzado) ---
   const urlParams = new URLSearchParams(window.location.search);
   let searchTerm = urlParams.get('query') || urlParams.get('search');
@@ -113,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return game;
       })
-      // Encadenado directo sin llaves a CheapShark por el nombre exacto de RAWG
+      // Encadenado directo sin llaves a CheapShark por el nombre de RAWG
       .then(game => fetch(`https://www.cheapshark.com/api/1.0/games?title=${encodeURIComponent(game.name)}`))
       .then(response => {
         if (!response.ok) throw new Error("Error consultando CheapShark API");
@@ -129,11 +139,14 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>`;
           }
           finishLoading();
-          return;
+          return null;
         }
 
-        const cheapGame = cheapSharkGames[0];
-        if (cheapestHistoric) cheapestHistoric.textContent = `$${cheapGame.cheapest}`;
+        // Buscar correspondencia exacta en nombre
+        let cheapGame = cheapSharkGames.find(g => g.external.toLowerCase() === currentGameContext.name.toLowerCase());
+        if (!cheapGame) {
+          cheapGame = cheapSharkGames[0];
+        }
 
         return fetch(`https://www.cheapshark.com/api/1.0/games?id=${cheapGame.gameID}`);
       })
@@ -144,7 +157,13 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then(dealDetails => {
         if (dealDetails) {
+          // Asignar el precio histórico más bajo real obtenido de cheapestPriceEver
+          if (cheapestHistoric) {
+            cheapestHistoric.textContent = `$${dealDetails.cheapestPriceEver.price}`;
+          }
           renderOffers(dealDetails.deals);
+        } else {
+          if (cheapestHistoric) cheapestHistoric.textContent = "N/D";
         }
         finishLoading();
       })
@@ -252,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   };
 
-  // --- OBTENER JUEGOS RELACIONADOS (Sagas o Género) ---
+  // --- OBTENER JUEGOS RECOMENDADOS (Sagas o Género) ---
   const fetchRelatedGames = (slug, genreSlug) => {
     const loadingRelated = document.getElementById('loading-related');
     const relatedList = document.getElementById('related-list');
@@ -294,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       })
       .catch(err => {
-        console.error("Error al obtener juegos relacionados:", err);
+        console.error("Error al obtener recomendaciones de juegos:", err);
         // Si todo falla, intentar cargar por género directamente
         if (genreSlug) {
           fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&genres=${genreSlug}&ordering=-added&page_size=5`)
@@ -304,14 +323,14 @@ document.addEventListener('DOMContentLoaded', () => {
               renderRelatedList(list);
             })
             .catch(genreErr => {
-              console.error("Error definitivo en relacionados:", genreErr);
+              console.error("Error definitivo en recomendaciones:", genreErr);
               if (loadingRelated) {
-                loadingRelated.innerHTML = `<span class="text-[10px] text-gray-500 py-2"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-1.5"></i> No se encontraron juegos relacionados.</span>`;
+                loadingRelated.innerHTML = `<span class="text-[10px] text-gray-500 py-2"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-1.5"></i> No se encontraron juegos recomendados.</span>`;
               }
             });
         } else {
           if (loadingRelated) {
-            loadingRelated.innerHTML = `<span class="text-[10px] text-gray-500 py-2"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-1.5"></i> No se encontraron juegos relacionados.</span>`;
+            loadingRelated.innerHTML = `<span class="text-[10px] text-gray-500 py-2"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-1.5"></i> No se encontraron juegos recomendados.</span>`;
           }
         }
       });
@@ -328,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
     relatedList.classList.remove('hidden');
     
     if (games.length === 0) {
-      relatedList.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No hay juegos relacionados disponibles.</p>`;
+      relatedList.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No hay juegos recomendados disponibles.</p>`;
       return;
     }
     
@@ -344,12 +363,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ? `<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${game.metacritic}</span>`
         : '';
         
+      // Evitar bug de zona horaria extrayendo directamente el año con substring
+      const releaseYear = game.released ? game.released.substring(0, 4) : 'N/D';
+
       item.innerHTML = `
         ${thumb}
         <div class="flex-grow min-w-0">
           <p class="font-bold text-white text-xs truncate group-hover:text-sky-400 transition-colors">${game.name}</p>
           <div class="flex items-center gap-2 mt-0.5">
-            <span class="text-[10px] text-gray-400">${game.released ? new Date(game.released).getFullYear() : 'N/D'}</span>
+            <span class="text-[10px] text-gray-400">${releaseYear}</span>
             ${scoreTag}
           </div>
         </div>
@@ -478,40 +500,34 @@ document.addEventListener('DOMContentLoaded', () => {
     tempDiv.innerHTML = rawDescriptionHtml;
     const plainText = tempDiv.textContent || tempDiv.innerText || "";
     
-    // Limitar el tamaño a traducir a unos 300 caracteres (límite seguro para MyMemory)
-    const textToTranslate = plainText.substring(0, 300).trim();
-    console.log("GAMERDEX DEBUG: textToTranslate =", textToTranslate);
-    console.log("GAMERDEX DEBUG: longitud =", textToTranslate.length);
-    if (!textToTranslate) {
+    if (!plainText.trim()) {
       gameDescription.innerHTML = rawDescriptionHtml;
       return;
     }
 
     gameDescription.innerHTML = `<p class="text-xs text-sky-400 font-semibold uppercase tracking-wider animate-pulse flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-ping"></span> Traduciendo sinopsis al español...</p>`;
 
-    const targetUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=en|es`;
+    // API pública de Google Translate (sin API key)
+    const targetUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=es&dt=t&q=${encodeURIComponent(plainText)}`;
 
     fetch(targetUrl)
       .then(res => {
-        if (!res.ok) throw new Error("Fallo de conexión en MyMemory");
+        if (!res.ok) throw new Error("Fallo de conexión en Google Translate");
         return res.json();
       })
       .then(data => {
-        // Validar si MyMemory devolvió un error en la respuesta (por ejemplo, límite de longitud)
-        if (data.responseStatus !== 200 || !data.responseData || 
-            (data.responseData.translatedText && data.responseData.translatedText.toUpperCase().includes("LIMIT EXCEEDED"))) {
-          throw new Error("Límite o error de traducción de MyMemory");
-        }
-
-        const translatedText = data.responseData.translatedText;
+        if (!data || !data[0]) throw new Error("Respuesta inválida de Google Translate");
+        
+        // Unir todos los fragmentos traducidos por oraciones
+        const translatedText = data[0].map(item => item[0]).join('');
         
         gameDescription.innerHTML = `
-          <p class="mb-4 leading-relaxed">${translatedText}...</p>
+          <div class="leading-relaxed space-y-3 whitespace-pre-line">${translatedText}</div>
           <div class="mt-4 pt-3 border-t border-slate-800/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-[10px] text-gray-500 bg-slate-900/10 p-2 rounded">
             <span class="font-medium flex items-center"><i class="fa-solid fa-language mr-1.5 text-sky-400"></i> Traducido automáticamente</span>
             <button id="btn-toggle-original" class="text-sky-400 hover:underline font-semibold cursor-pointer">Ver sinopsis original (Inglés)</button>
           </div>
-          <div id="original-description-box" class="hidden mt-3 p-3.5 rounded-lg bg-slate-900/40 border border-slate-850 text-gray-400 text-xs leading-relaxed max-h-48 overflow-y-auto">
+          <div id="original-description-box" class="hidden mt-3 p-3.5 rounded-lg bg-slate-900/40 border border-slate-850 text-gray-400 text-xs leading-relaxed max-h-60 overflow-y-auto">
             ${rawDescriptionHtml}
           </div>
         `;
@@ -651,7 +667,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     uniqueDeals.forEach(deal => {
-      const storeInfo = STORES_MAP[deal.storeID] || { name: "Tienda Digital", icon: "fa-solid fa-shop", color: "hover:text-slate-400" };
+      // Buscar correspondencia en la lista dinámica de tiendas
+      const storeData = storesList.find(s => s.storeID === deal.storeID);
+      const storeName = storeData ? storeData.storeName : "Tienda Digital";
+      const storeInfo = STORES_MAP[deal.storeID] || { icon: "fa-solid fa-cart-shopping", color: "hover:text-slate-400" };
       const savingPercent = Math.round(parseFloat(deal.savings));
       
       const dealElement = document.createElement('div');
@@ -659,11 +678,11 @@ document.addEventListener('DOMContentLoaded', () => {
       
       dealElement.innerHTML = `
         <div class="flex items-center space-x-2.5">
-          <div class="w-8 h-8 rounded bg-slate-850 flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform ${storeInfo.color}">
-            <i class="${storeInfo.icon} text-base"></i>
+          <div class="w-8 h-8 rounded bg-slate-850 flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform ${storeInfo.color || 'hover:text-sky-400'}">
+            <i class="${storeInfo.icon || 'fa-solid fa-cart-shopping'} text-base"></i>
           </div>
           <div>
-            <span class="text-xs font-bold text-white block">${storeInfo.name}</span>
+            <span class="text-xs font-bold text-white block">${storeName}</span>
             ${savingPercent > 0 ? `<span class="text-[8px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1 py-0.2 rounded uppercase">Ahorra ${savingPercent}%</span>` : ''}
           </div>
         </div>
@@ -698,13 +717,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function formatDate(dateString) {
-    try {
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
-      const dateObj = new Date(dateString + 'T00:00:00');
-      return dateObj.toLocaleDateString('es-ES', options);
-    } catch (e) {
-      return dateString;
-    }
+    if (!dateString) return "N/D";
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return dateString;
+    const months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    const day = parseInt(parts[2], 10);
+    const month = months[parseInt(parts[1], 10) - 1];
+    const year = parts[0];
+    return `${day} de ${month} de ${year}`;
   }
 
 

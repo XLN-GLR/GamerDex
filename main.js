@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="p-4 flex-grow flex flex-col justify-between">
           <h3 class="font-bold text-white font-gamer text-sm truncate group-hover:text-sky-400 transition-colors mb-1">${game.name}</h3>
-          <span class="text-xs text-gray-400 font-medium">${game.released ? new Date(game.released).getFullYear() : 'Próximamente'}</span>
+          <span class="text-xs text-gray-400 font-medium">${game.released ? game.released.substring(0, 4) : 'Próximamente'}</span>
         </div>
       `;
 
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     autocompleteResults.innerHTML = "";
     
     games.forEach(game => {
-      const year = game.released ? new Date(game.released).getFullYear() : 'N/D';
+      const year = game.released ? game.released.substring(0, 4) : 'N/D';
       const item = document.createElement('div');
       item.className = "autocomplete-item flex items-center gap-3 p-2.5 cursor-pointer text-xs text-gray-200";
       
