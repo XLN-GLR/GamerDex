@@ -11,7 +11,7 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=1.0.4">
+  <link rel="stylesheet" href="styles.css?v=1.0.5">
 </head>
 <body class="flex flex-col justify-between min-h-screen">
 
@@ -99,23 +99,30 @@
     <!-- SECCIONES DE CATÁLOGO (CATALOG CARDS GRIDS) -->
     <div class="space-y-16">
       
-      <!-- Sección 1: En Tendencia -->
+      <!-- Sección 1: Catálogo por Categorías -->
       <section>
-        <div class="flex items-center justify-between mb-6 border-b border-slate-800/40 pb-3">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b border-slate-800/40 pb-3 gap-4">
           <h2 class="text-xl md:text-2xl font-bold font-gamer text-white uppercase flex items-center">
-            <span class="w-1.5 h-6 bg-sky-500 rounded mr-3"></span> Juegos en Tendencia
+            <span class="w-1.5 h-6 bg-sky-500 rounded mr-3"></span> Catálogo de Juegos
           </h2>
-          <span class="text-xs text-sky-400 font-semibold uppercase tracking-wider">Los más jugados</span>
+          <!-- Pestañas de categorías -->
+          <div class="flex items-center space-x-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none" id="category-tabs">
+            <button data-genre="action" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase bg-sky-500 text-white shadow-md transition-all whitespace-nowrap cursor-pointer">Acción</button>
+            <button data-genre="role-playing-games-rpg" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase bg-slate-900 border border-slate-800 text-gray-400 hover:text-white transition-all whitespace-nowrap cursor-pointer">RPG</button>
+            <button data-genre="strategy" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase bg-slate-900 border border-slate-800 text-gray-400 hover:text-white transition-all whitespace-nowrap cursor-pointer">Estrategia</button>
+            <button data-genre="platformer" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase bg-slate-900 border border-slate-800 text-gray-400 hover:text-white transition-all whitespace-nowrap cursor-pointer">Plataformas</button>
+            <button data-genre="shooter" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase bg-slate-900 border border-slate-800 text-gray-400 hover:text-white transition-all whitespace-nowrap cursor-pointer">Shooter</button>
+          </div>
         </div>
         
-        <!-- Spinner de carga -->
-        <div id="loading-trends" class="py-12 flex flex-col items-center justify-center">
+        <!-- Spinner de carga del catálogo -->
+        <div id="loading-catalog" class="py-12 flex flex-col items-center justify-center">
           <div class="w-10 h-10 border-4 border-slate-800 rounded-full animate-spin-neon mb-2"></div>
-          <span class="text-xs text-gray-500 font-gamer uppercase tracking-widest">Cargando tendencias...</span>
+          <span class="text-xs text-gray-500 font-gamer uppercase tracking-widest">Cargando juegos...</span>
         </div>
         
-        <!-- Grid de Tendencias -->
-        <div id="trends-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Grid del Catálogo de Categorías -->
+        <div id="catalog-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <!-- Tarjetas inyectadas por JS -->
         </div>
       </section>
@@ -152,6 +159,6 @@
   </footer>
 
   <!-- App Main Logic -->
-  <script src="main.js?v=1.0.4"></script>
+  <script src="main.js?v=1.0.5"></script>
 </body>
 </html>

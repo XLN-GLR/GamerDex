@@ -28,8 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const heroDesc = document.getElementById('hero-desc');
   const heroBtnDetails = document.getElementById('hero-btn-details');
 
-  const loadingTrends = document.getElementById('loading-trends');
-  const trendsGrid = document.getElementById('trends-grid');
+  const categoryTabs = document.getElementById('category-tabs');
+  const loadingCatalog = document.getElementById('loading-catalog');
+  const catalogGrid = document.getElementById('catalog-grid');
 
   const loadingFree = document.getElementById('loading-free');
   const freeGrid = document.getElementById('free-grid');
@@ -53,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         localStorage.removeItem('gamerdex_search_slug');
       }
-      window.location.href = 'game-details.html?v=1.0.4';
+      window.location.href = 'game-details.html?v=1.0.5';
     } catch (e) {
       console.error('Error al acceder al localStorage:', e);
       showError('Hubo un problema de almacenamiento en tu navegador. Por favor, habilita las cookies.');
@@ -71,17 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- PRECARGA DEL CATÁLOGO INICIAL BLINDADA ---
 
   const loadInitialCatalog = () => {
-    // 1. Cargar Tendencias de RAWG y poblar el Hero y el Grid de Tendencias
-    fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&ordering=-added&page_size=5`)
-      .then(res => {
-        if (!res.ok) throw new Error("No se pudieron obtener las tendencias de RAWG.");
-        return res.json();
-      })
+    // 1. Cargar Destacado del Hero (Tendencias RAWG generales para poblar el banner superior)
+    fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&ordering=-added&page_size=1`)
+      .then(res => res.ok ? res.json() : null)
       .then(data => {
-        const games = data.results || [];
-        
-        if (games.length > 0) {
-          const featured = games[0];
+        if (data && data.results && data.results.length > 0) {
+          const featured = data.results[0];
           if (heroHighlight && featured.background_image) {
             heroHighlight.style.backgroundImage = `url('${featured.background_image}')`;
           }
@@ -89,61 +85,113 @@ document.addEventListener('DOMContentLoaded', () => {
           if (heroDesc) {
             heroDesc.textContent = `Explora la ficha técnica, plataformas de juego, y compara las mejores ofertas de PC en tiempo real para ${featured.name}. Calificación Metacritic: ${featured.metacritic || 'N/D'}.`;
           }
-          
           if (heroBtnDetails) {
             heroBtnDetails.onclick = () => executeSearch(featured.name, featured.slug);
           }
-          
-          const trends = games.slice(1, 5);
-          renderGrid(trendsGrid, trends);
         } else {
           fallbackHero();
         }
-        if (loadingTrends) loadingTrends.classList.add('hidden');
-        if (trendsGrid) trendsGrid.classList.remove('hidden');
       })
       .catch(err => {
-        console.error("Error cargando tendencias:", err);
+        console.error("Error cargando destacado del Hero:", err);
         fallbackHero();
-        if (loadingTrends) {
-          loadingTrends.innerHTML = `<span class="text-xs text-gray-500 py-4"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> No se pudieron cargar los juegos en tendencia en este momento.</span>`;
-        }
       });
 
+    // 2. Cargar catálogos por defecto (Acción)
+    fetchCategoryGames("action");
+    fetchFreeGamesByCategory("action");
 
+    // 3. Enlazar pestañas de categorías
+    if (categoryTabs) {
+      const tabButtons = categoryTabs.querySelectorAll('button');
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const clickedBtn = e.currentTarget;
+          const genreSlug = clickedBtn.getAttribute('data-genre');
+          
+          // Desactivar todos los botones
+          tabButtons.forEach(b => {
+            b.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase bg-slate-900 border border-slate-800 text-gray-400 hover:text-white transition-all whitespace-nowrap cursor-pointer";
+          });
+          
+          // Activar el botón seleccionado
+          clickedBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase bg-sky-500 text-white shadow-md transition-all whitespace-nowrap cursor-pointer";
+          
+          // Mostrar spinners
+          if (loadingCatalog) loadingCatalog.classList.remove('hidden');
+          if (catalogGrid) catalogGrid.classList.add('hidden');
+          if (loadingFree) loadingFree.classList.remove('hidden');
+          if (freeGrid) freeGrid.classList.add('hidden');
+          
+          // Consultar APIs
+          fetchCategoryGames(genreSlug);
+          fetchFreeGamesByCategory(genreSlug);
+        });
+      });
+    }
+  };
 
-    // 3. Cargar Juegos Gratuitos Populares (FreeToGame con fallback de CORS allorigins /get)
-    const f2pUrl = `https://www.freetogame.com/api/games?sort-by=popularity`;
+  const fetchCategoryGames = (genreSlug) => {
+    fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&genres=${genreSlug}&ordering=-added&page_size=8`)
+      .then(res => {
+        if (!res.ok) throw new Error("No se pudieron obtener juegos de la categoría.");
+        return res.json();
+      })
+      .then(data => {
+        const games = data.results || [];
+        renderGrid(catalogGrid, games);
+        if (loadingCatalog) loadingCatalog.classList.add('hidden');
+        if (catalogGrid) catalogGrid.classList.remove('hidden');
+      })
+      .catch(err => {
+        console.error("Error cargando categoría:", err);
+        if (loadingCatalog) {
+          loadingCatalog.innerHTML = `<span class="text-xs text-gray-500 py-4"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> No se pudieron obtener los juegos del catálogo.</span>`;
+        }
+      });
+  };
+
+  const fetchFreeGamesByCategory = (genreSlug) => {
+    // Mapeo inteligente de géneros a categorías de Free-To-Play Games
+    const F2P_GENRE_MAP = {
+      "action": "action",
+      "role-playing-games-rpg": "rpg",
+      "strategy": "strategy",
+      "platformer": "platformer",
+      "shooter": "shooter"
+    };
+
+    const f2pCategory = F2P_GENRE_MAP[genreSlug] || "action";
+    const f2pUrl = `https://www.freetogame.com/api/games?category=${f2pCategory}`;
     const f2pFallbackUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(f2pUrl)}`;
 
     fetch(f2pUrl)
       .then(res => {
-        if (!res.ok) throw new Error("Fallo en petición directa F2P");
+        if (!res.ok) throw new Error("Fallo directo F2P");
         return res.json();
       })
       .then(games => {
         renderFreeGrid(games.slice(0, 4));
       })
       .catch(err => {
-        console.warn("Fallo directo CORS F2P. Usando contingencia proxy allorigins /get...", err);
+        console.warn("Fallo directo CORS F2P. Usando contingencia proxy...", err);
         fetch(f2pFallbackUrl)
           .then(res => {
             if (!res.ok) throw new Error("Error proxy F2P");
             return res.json();
           })
           .then(data => {
-            // allorigins /get devuelve { contents: "string json" }
             if (data.contents) {
               const games = JSON.parse(data.contents);
               renderFreeGrid(games.slice(0, 4));
             } else {
-              throw new Error("Estructura de datos de proxy inválida");
+              throw new Error("Estructura de datos proxy inválida");
             }
           })
           .catch(proxyErr => {
             console.error("Ambos endpoints F2P fallaron:", proxyErr);
             if (loadingFree) {
-              loadingFree.innerHTML = `<span class="text-xs text-gray-500 py-4"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> No se pudieron obtener los gratuitos recomendados.</span>`;
+              loadingFree.innerHTML = `<span class="text-xs text-gray-500 py-4"><i class="fa-solid fa-triangle-exclamation text-yellow-500 mr-2"></i> Alternativas F2P no disponibles para esta categoría.</span>`;
             }
           });
       });
@@ -155,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (heroHighlight) heroHighlight.style.backgroundImage = "linear-gradient(135deg, #0f172a 0%, #090d16 100%)";
   };
 
-  // Renderizar grids de RAWG
+  // Renderizar grids de RAWG (Catálogo)
   const renderGrid = (container, games) => {
     if (!container) return;
     container.innerHTML = "";
