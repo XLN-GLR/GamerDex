@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         localStorage.removeItem('gamerdex_search_slug');
       }
-      window.location.href = 'game-details.html?v=1.0.7';
+      window.location.href = 'game-details.html?v=1.0.8';
     } catch (e) {
       console.error('Error al acceder al localStorage:', e);
       showError('Hubo un problema de almacenamiento en tu navegador. Por favor, habilita las cookies.');
