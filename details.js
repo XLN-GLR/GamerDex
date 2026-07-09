@@ -101,7 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const gameDescription = document.getElementById('game-description');
   const trailerSection = document.getElementById('trailer-section');
   const screenshotsGrid = document.getElementById('screenshots-grid');
-  const commentsSection = document.getElementById('comments-section');
 
   // Elementos del DOM (CheapShark)
   const cheapestHistoric = document.getElementById('cheapest-historic');
@@ -140,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         fetchScreenshots(slug);
         fetchTrailers(slug);
-        renderComments(game);
 
         // Elegir el género más específico (descartando "action" o "indie" si hay algo como "platformer", "rpg", "strategy", etc.)
         let bestGenreSlug = null;
@@ -488,56 +486,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       
       relatedList.appendChild(item);
-    });
-  };
-
-  // --- RENDERIZAR COMENTARIOS DE FUENTES ---
-  const renderComments = (game) => {
-    if (!commentsSection) return;
-    commentsSection.innerHTML = "";
-
-    const score = game.metacritic || 80;
-    const REVIEWS_POOL = [
-      {
-        source: "IGN España",
-        score: score >= 90 ? "9.5/10" : score >= 80 ? "8.5/10" : "7.0/10",
-        author: "Álvaro Alonso",
-        text: score >= 85 
-          ? `Es una obra maestra indiscutible. La jugabilidad se siente extremadamente pulida y visualmente es un espectáculo constante. Absolutamente imprescindible.`
-          : `Tiene mecánicas interesantes y ofrece horas de entretenimiento. A pesar de algunos fallos menores de ritmo, cumple con creces.`
-      },
-      {
-        source: "Eurogamer",
-        score: score >= 90 ? "Imprescindible" : score >= 75 ? "Recomendado" : "Regular",
-        author: "Jose L. Ortega",
-        text: score >= 85
-          ? `Un diseño de niveles que roza la perfección y una atmósfera atrapante. Logra cautivar desde la primera hora de juego y no te suelta.`
-          : `Se apoya fuertemente en su narrativa y en una dirección de arte sobresaliente. Vale la pena explorar cada uno de sus rincones.`
-      },
-      {
-        source: "3DJuegos",
-        score: score >= 90 ? "5/5 Estrellas" : score >= 75 ? "4/5 Estrellas" : "3/5 Estrellas",
-        author: "Alejandro Pascual",
-        text: score >= 85
-          ? `Uno de los mayores logros del género. Es retador, inteligente y demuestra una madurez técnica y artística apabullante.`
-          : `Una propuesta sólida que divertirá a los entusiastas del género. Con una gran banda sonora que acompaña muy bien.`
-      }
-    ];
-
-    REVIEWS_POOL.forEach(review => {
-      const card = document.createElement('div');
-      card.className = "p-4 rounded-lg bg-slate-900/30 border border-slate-800/80 text-xs space-y-2";
-      card.innerHTML = `
-        <div class="flex justify-between items-center">
-          <div class="flex items-center space-x-2">
-            <span class="font-bold text-white">${review.source}</span>
-            <span class="text-[10px] text-gray-500">Por ${review.author}</span>
-          </div>
-          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">${review.score}</span>
-        </div>
-        <p class="text-gray-400 leading-relaxed italic">"${review.text}"</p>
-      `;
-      commentsSection.appendChild(card);
     });
   };
 
