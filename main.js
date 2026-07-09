@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         localStorage.removeItem('gamerdex_search_slug');
       }
-      window.location.href = 'game-details.html?v=1.0.8';
+      window.location.href = 'game-details.html?v=1.0.9';
     } catch (e) {
       console.error('Error al acceder al localStorage:', e);
       showError('Hubo un problema de almacenamiento en tu navegador. Por favor, habilita las cookies.');
@@ -78,8 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(data => {
         if (data && data.results && data.results.length > 0) {
           const featured = data.results[0];
-          if (heroHighlight && featured.background_image) {
-            heroHighlight.style.backgroundImage = `linear-gradient(to top, #090d16 0%, rgba(9, 13, 22, 0.4) 60%, transparent 100%), url('${featured.background_image}')`;
+          const heroBgImage = document.getElementById('hero-bg-image');
+          if (heroBgImage && featured.background_image) {
+            heroBgImage.style.backgroundImage = `url('${featured.background_image}')`;
           }
           if (heroTitle) heroTitle.textContent = featured.name;
           if (heroDesc) {
@@ -200,7 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const fallbackHero = () => {
     if (heroTitle) heroTitle.textContent = "GamerDex";
     if (heroDesc) heroDesc.textContent = "Busca tus videojuegos favoritos y compara ofertas en tiempo real.";
-    if (heroHighlight) heroHighlight.style.backgroundImage = "linear-gradient(135deg, #0f172a 0%, #090d16 100%)";
+    const heroBgImage = document.getElementById('hero-bg-image');
+    if (heroBgImage) heroBgImage.style.backgroundImage = "linear-gradient(135deg, #0f172a 0%, #090d16 100%)";
   };
 
   // Renderizar grids de RAWG (Catálogo)

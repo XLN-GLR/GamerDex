@@ -177,3 +177,9 @@ h1, h2, h3, .font-gamer {
   transform: scale(1.03);
   filter: brightness(1.1);
 }
+
+/* Máscara de Desvanecimiento Alfa para Banners */
+.hero-mask {
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, rgba(0, 0, 0, 0.1) 5%, rgba(0, 0, 0, 0.8) 50%, black 100%);
+  mask-image: linear-gradient(to top, transparent 0%, rgba(0, 0, 0, 0.1) 5%, rgba(0, 0, 0, 0.8) 50%, black 100%);
+}

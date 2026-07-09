@@ -11,7 +11,7 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=1.0.8">
+  <link rel="stylesheet" href="styles.css?v=1.0.9">
 </head>
 <body class="flex flex-col justify-between min-h-screen relative">
 
@@ -33,7 +33,9 @@
   </header>
 
   <!-- Banner Dinámico del Juego -->
-  <div id="hero-banner" class="w-full h-[25vh] md:h-[35vh] bg-cover bg-center relative flex items-end justify-start">
+  <div id="hero-banner" class="w-full h-[25vh] md:h-[35vh] relative flex items-end justify-start overflow-hidden">
+    <!-- Imagen de fondo aislada con máscara de desvanecimiento -->
+    <div id="hero-bg-image" class="absolute inset-0 bg-cover bg-center hero-mask"></div>
     <div class="max-w-7xl mx-auto w-full px-6 md:px-12 pb-6 relative z-10 flex items-center gap-5">
       <div id="game-thumbnail" class="w-20 h-28 md:w-28 md:h-38 rounded-lg overflow-hidden border border-white/5 hidden md:block shadow-lg">
         <!-- Inyectado dinámicamente -->
@@ -251,6 +253,6 @@
   </footer>
 
   <!-- App Details Logic -->
-  <script src="details.js?v=1.0.8"></script>
+  <script src="details.js?v=1.0.9"></script>
 </body>
 </html>
