@@ -115,7 +115,22 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchTrailers(slug);
         renderComments(game);
 
-        const firstGenreSlug = (game.genres && game.genres.length > 0) ? game.genres[0].slug : null;
+        // Elegir el género más específico (descartando "action" o "indie" si hay algo como "platformer", "rpg", "strategy", etc.)
+        let bestGenreSlug = null;
+        if (game.genres && game.genres.length > 0) {
+          if (game.genres.length === 1) {
+            bestGenreSlug = game.genres[0].slug;
+          } else {
+            const genericGenres = ["action", "indie"];
+            const specificGenre = game.genres.find(g => !genericGenres.includes(g.slug));
+            if (specificGenre) {
+              bestGenreSlug = specificGenre.slug;
+            } else {
+              const indieGenre = game.genres.find(g => g.slug === "indie");
+              bestGenreSlug = indieGenre ? indieGenre.slug : game.genres[0].slug;
+            }
+          }
+        }
         
         // Extraer un tag descriptivo significativo (evitando tags genéricos de plataforma/sistema)
         const tags = game.tags || [];
@@ -123,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const significantTag = tags.find(t => t.language === "eng" && !genericTags.includes(t.slug));
         const tagSlug = significantTag ? significantTag.slug : null;
         
-        fetchRelatedGames(slug, firstGenreSlug, tagSlug);
+        fetchRelatedGames(slug, bestGenreSlug, tagSlug);
 
         return game;
       })
