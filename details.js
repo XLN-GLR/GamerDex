@@ -1,9 +1,6 @@
 // Clave de API de RAWG - Proporcionada por el usuario
 const RAWG_KEY = "a853e0e4673547d58acdc79a70494bb2";
 
-// Clave de API de Gemini - Deja esta constante editable para el usuario
-const GEMINI_KEY = "TU_API_KEY_AQUI";
-
 // Contexto global del videojuego cargado para alimentar a Gemini
 let currentGameContext = {
   name: "Videojuego",
@@ -441,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // --- TRADUCCIÓN DE SINOPSIS AL ESPAÑOL ---
-  const setSpanishDescription = (rawDescriptionHtml, gameName) => {
+  const setSpanishDescription = (rawDescriptionHtml) => {
     if (!gameDescription) return;
     
     if (!rawDescriptionHtml) {
@@ -449,52 +446,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Si la API key de Gemini está configurada, la usamos para traducir de forma perfecta todo el HTML
-    if (GEMINI_KEY && GEMINI_KEY !== "TU_API_KEY_AQUI" && GEMINI_KEY.trim() !== "") {
-      gameDescription.innerHTML = `<p class="text-xs text-fuchsia-400 font-semibold uppercase tracking-wider animate-pulse flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-fuchsia-500 animate-ping"></span> Traduciendo sinopsis con Inteligencia Artificial...</p>`;
-      
-      const prompt = `Actúas como traductor experto para GamerDex. Traduce el siguiente contenido HTML sobre el videojuego "${gameName}" del inglés al español. Conserva exactamente las mismas etiquetas HTML en tu respuesta (como <p>, <br>, <h3>, etc.) y solo traduce el texto interno. No agregues bloques de código de markdown (\`\`\`), ni introducciones, ni comentarios. Solo devuelve el código HTML traducido.\n\nContenido a traducir:\n${rawDescriptionHtml}`;
-
-      const requestBody = {
-        contents: [{
-          parts: [{
-            text: prompt
-          }]
-        }]
-      };
-
-      fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      })
-        .then(res => {
-          if (!res.ok) throw new Error("Fallo en Gemini");
-          return res.json();
-        })
-        .then(data => {
-          if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0]) {
-            let translatedHtml = data.candidates[0].content.parts[0].text;
-            // Limpiar posibles bloques de código que la IA a veces agrega por error
-            translatedHtml = translatedHtml.replace(/^```html\s*/i, '').replace(/```$/, '').trim();
-            gameDescription.innerHTML = translatedHtml;
-          } else {
-            throw new Error("Estructura inválida");
-          }
-        })
-        .catch(err => {
-          console.error("Error al traducir descripción con Gemini, usando fallback de texto plano:", err);
-          translateWithFallback(rawDescriptionHtml);
-        });
-    } else {
-      // Si no hay key de Gemini, usamos el fallback
-      translateWithFallback(rawDescriptionHtml);
-    }
-  };
-
-  const translateWithFallback = (rawDescriptionHtml) => {
     // Extraer texto plano
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = rawDescriptionHtml;
@@ -548,12 +499,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       })
       .catch(err => {
-        console.error("Error en MyMemory, mostrando descripción original con aviso:", err);
+        console.error("Error en Google Translate, mostrando descripción original con aviso:", err);
         // Fallback final: Mostrar el texto original en inglés con un mensaje
         gameDescription.innerHTML = `
           <div class="p-3 mb-4 rounded-lg bg-amber-500/5 border border-amber-500/10 text-amber-400 text-[10px] flex items-center gap-2">
             <i class="fa-solid fa-triangle-exclamation"></i>
-            <span>La traducción automática no está disponible en este momento. Configura tu clave de Gemini para activar la traducción instantánea por IA.</span>
+            <span>La traducción automática no está disponible en este momento.</span>
           </div>
           <div class="leading-relaxed">
             ${rawDescriptionHtml}
@@ -614,7 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Inyectar descripción traducida en español
-    setSpanishDescription(game.description, game.name);
+    setSpanishDescription(game.description);
 
     // Estrellas de calificación (Con validación de elemento existente)
     if (starsRating) {
