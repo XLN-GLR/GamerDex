@@ -1,19 +1,32 @@
 // Clave de API de RAWG - Proporcionada por el usuario
 const RAWG_KEY = "a853e0e4673547d58acdc79a70494bb2";
 
-// Detección de país y app de Steam para precios regionalizados en tiempo real
+// Detección híbrida de país y app de Steam para precios regionalizados en tiempo real
 let userCountryCode = "US";
 let currentSteamAppId = null;
 
+// 1. Inicialización rápida nativa por idioma del navegador (a prueba de bloqueadores de publicidad/rastreo)
+if (navigator.language) {
+  const parts = navigator.language.split('-');
+  if (parts.length > 1) {
+    const code = parts[1].toUpperCase();
+    if (code.length === 2 && isNaN(code)) {
+      userCountryCode = code;
+      console.log("País inicial detectado desde el idioma de tu navegador:", userCountryCode);
+    }
+  }
+}
+
+// 2. Refinamiento asíncrono secundario por IP de red (puede ser bloqueado por AdBlockers/Brave)
 fetch("https://api.country.is")
   .then(res => res.ok ? res.json() : null)
   .then(data => {
     if (data && data.country) {
       userCountryCode = data.country;
-      console.log("País del usuario detectado para precios regionales:", userCountryCode);
+      console.log("País refinado detectado por IP de red:", userCountryCode);
     }
   })
-  .catch(err => console.warn("No se pudo autodetectar el país del usuario para precios de Steam:", err));
+  .catch(err => console.warn("Detección de IP bloqueada o fallida, usando país del navegador:", userCountryCode));
 
 // Contexto global del videojuego cargado para alimentar a Gemini
 let currentGameContext = {
@@ -753,9 +766,11 @@ document.addEventListener('DOMContentLoaded', () => {
       offersList.appendChild(dealElement);
     });
 
-    // Lanzar actualización de precio regional en tiempo real si hay Steam en la lista
+    // Lanzar actualización de precio regional en tiempo real si hay Steam en la lista con un leve retardo para asegurar renderizado de DOM
     if (currentSteamAppId && uniqueDeals.some(d => d.storeID === "1")) {
-      updateSteamPriceRealtime(currentSteamAppId);
+      setTimeout(() => {
+        updateSteamPriceRealtime(currentSteamAppId);
+      }, 100);
     }
   }
 
