@@ -75,160 +75,170 @@
     <!-- CONTENIDO PRINCIPAL -->
     <div id="details-content" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
       
-      <!-- 1. Sinopsis / Reseña Principal -->
-      <div class="lg:col-span-2 glass-panel p-6 rounded-xl border border-slate-800/60">
-        <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
-          <i class="fa-solid fa-file-lines mr-2.5"></i> Reseña y Sinopsis
-        </h2>
-        <!-- Aquí se inyectará la descripción -->
-        <div id="game-description" class="text-sm text-gray-300 leading-relaxed space-y-3">
-          <p>Obteniendo sinopsis de la base de datos de RAWG...</p>
-        </div>
-      </div>
-
-      <!-- 2. Ficha Técnica -->
-      <div class="lg:col-span-1 glass-panel p-6 rounded-xl border border-slate-800/60 flex flex-col justify-between">
-        <div>
+      <!-- Columna Principal (2 Tercios) -->
+      <div class="lg:col-span-2 space-y-8">
+        
+        <!-- 1. Sinopsis / Reseña Principal -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60">
           <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
-            <i class="fa-solid fa-circle-info mr-2.5"></i> Ficha Técnica
+            <i class="fa-solid fa-file-lines mr-2.5"></i> Reseña y Sinopsis
           </h2>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-            <!-- Fecha Lanzamiento -->
-            <div class="p-3.5 rounded-lg bg-slate-900/40 border border-slate-850">
-              <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-0.5 font-bold">Fecha de Lanzamiento</span>
-              <span id="game-release" class="text-sm font-semibold text-white">Cargando...</span>
-            </div>
-            
-            <!-- Plataformas -->
-            <div class="p-3.5 rounded-lg bg-slate-900/40 border border-slate-850">
-              <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-0.5 font-bold">Plataformas Disponibles</span>
-              <span id="game-platforms" class="text-sm font-semibold text-white">Cargando...</span>
-            </div>
+          <!-- Aquí se inyectará la descripción -->
+          <div id="game-description" class="text-sm text-gray-300 leading-relaxed space-y-3">
+            <p>Obteniendo sinopsis de la base de datos de RAWG...</p>
+          </div>
+        </div>
 
-            <!-- Metacritic Score -->
-            <div class="p-3.5 rounded-lg bg-slate-900/40 border border-slate-850">
-              <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-0.5 font-bold">Puntuación Metacritic</span>
-              <div class="flex items-center space-x-2">
-                <span id="game-metacritic" class="text-xs font-black px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">N/D</span>
-                <span class="text-[10px] text-gray-400 font-semibold">Prensa especializada</span>
-              </div>
-            </div>
-
-            <!-- Géneros -->
-            <div class="p-3.5 rounded-lg bg-slate-900/40 border border-slate-850">
-              <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-0.5 font-bold">Géneros del Juego</span>
-              <span id="game-genres" class="text-sm font-semibold text-white">Cargando...</span>
+        <!-- 2. Tráiler Oficial -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60">
+          <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
+            <i class="fa-solid fa-film mr-2.5"></i> Tráiler Oficial
+          </h2>
+          <!-- Contenedor del reproductor de video -->
+          <div id="trailer-section">
+            <div class="text-gray-500 text-xs py-10 text-center bg-slate-900/30 rounded-xl border border-dashed border-slate-800">
+              Buscando tráiler del juego...
             </div>
           </div>
         </div>
 
-        <!-- Rating Star Container -->
-        <div class="mt-6 pt-5 border-t border-slate-800/60 flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-start justify-between gap-4">
+        <!-- 3. Galería de Capturas -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60">
+          <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
+            <i class="fa-solid fa-images mr-2.5"></i> Galería de Capturas
+          </h2>
+          <!-- Rejilla de Imágenes -->
+          <div id="screenshots-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="col-span-full text-gray-500 text-xs py-10 text-center bg-slate-900/30 rounded-xl border border-dashed border-slate-800">
+              Cargando galería de imágenes...
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Columna Lateral (1 Tercio) -->
+      <div class="lg:col-span-1 space-y-8">
+
+        <!-- 4. Ficha Técnica -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60 flex flex-col justify-between">
           <div>
-            <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-1 font-bold">Calificación Usuarios (RAWG)</span>
-            <div class="flex items-center space-x-1">
-              <div id="stars-rating" class="text-amber-400 flex space-x-1">
-                <!-- Estrellas generadas por JS -->
+            <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
+              <i class="fa-solid fa-circle-info mr-2.5"></i> Ficha Técnica
+            </h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+              <!-- Fecha Lanzamiento -->
+              <div class="p-3.5 rounded-lg bg-slate-900/40 border border-slate-850">
+                <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-0.5 font-bold">Fecha de Lanzamiento</span>
+                <span id="game-release" class="text-sm font-semibold text-white">Cargando...</span>
               </div>
-              <span id="rating-number" class="text-xs font-bold text-gray-300 ml-2">0/5</span>
+              
+              <!-- Plataformas -->
+              <div class="p-3.5 rounded-lg bg-slate-900/40 border border-slate-850">
+                <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-0.5 font-bold">Plataformas Disponibles</span>
+                <span id="game-platforms" class="text-sm font-semibold text-white">Cargando...</span>
+              </div>
+
+              <!-- Metacritic Score -->
+              <div class="p-3.5 rounded-lg bg-slate-900/40 border border-slate-850">
+                <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-0.5 font-bold">Puntuación Metacritic</span>
+                <div class="flex items-center space-x-2">
+                  <span id="game-metacritic" class="text-xs font-black px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">N/D</span>
+                  <span class="text-[10px] text-gray-400 font-semibold">Prensa especializada</span>
+                </div>
+              </div>
+
+              <!-- Géneros -->
+              <div class="p-3.5 rounded-lg bg-slate-900/40 border border-slate-850">
+                <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-0.5 font-bold">Géneros del Juego</span>
+                <span id="game-genres" class="text-sm font-semibold text-white">Cargando...</span>
+              </div>
             </div>
           </div>
-          <div id="rawg-link-container">
-            <!-- Enlace externo a RAWG -->
-          </div>
-        </div>
-      </div>
 
-      <!-- 3. Tráiler Oficial -->
-      <div class="lg:col-span-2 glass-panel p-6 rounded-xl border border-slate-800/60">
-        <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
-          <i class="fa-solid fa-film mr-2.5"></i> Tráiler Oficial
-        </h2>
-        <!-- Contenedor del reproductor de video -->
-        <div id="trailer-section">
-          <div class="text-gray-500 text-xs py-10 text-center bg-slate-900/30 rounded-xl border border-dashed border-slate-800">
-            Buscando tráiler del juego...
-          </div>
-        </div>
-      </div>
-
-      <!-- 4. Ofertas de PC -->
-      <div class="lg:col-span-1 glass-panel p-6 rounded-xl border border-slate-800/60 relative overflow-hidden flex flex-col justify-between min-h-[350px]">
-        <div>
-          <h2 class="text-lg font-bold mb-4 font-gamer text-fuchsia-400 flex items-center uppercase">
-            <i class="fa-solid fa-tags mr-2.5"></i> Ofertas de PC
-          </h2>
-
-          <!-- Precio Histórico Más Bajo -->
-          <div class="p-3.5 rounded-lg bg-fuchsia-950/10 border border-fuchsia-500/15 mb-5 flex justify-between items-center">
+          <!-- Rating Star Container -->
+          <div class="mt-6 pt-5 border-t border-slate-800/60 flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-start justify-between gap-4">
             <div>
-              <span class="text-[10px] uppercase tracking-wider text-fuchsia-400 font-bold block mb-0.5">Precio Más Bajo</span>
-              <span class="text-[9px] text-gray-500">Histórico de CheapShark</span>
+              <span class="text-[10px] uppercase tracking-wider text-gray-500 block mb-1 font-bold">Calificación Usuarios (RAWG)</span>
+              <div class="flex items-center space-x-1">
+                <div id="stars-rating" class="text-amber-400 flex space-x-1">
+                  <!-- Estrellas generadas por JS -->
+                </div>
+                <span id="rating-number" class="text-xs font-bold text-gray-300 ml-2">0/5</span>
+              </div>
             </div>
-            <span id="cheapest-historic" class="text-2xl font-black text-white font-gamer">N/D</span>
+            <div id="rawg-link-container">
+              <!-- Enlace externo a RAWG -->
+            </div>
           </div>
+        </div>
 
-          <!-- Listado de Ofertas Vigentes -->
-          <div class="space-y-3">
-            <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Precios del Día</h3>
-            <div id="offers-list" class="space-y-2.5">
-              <div class="text-gray-500 text-xs py-4 text-center">
-                Buscando ofertas...
+        <!-- 5. Ofertas de PC -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60 relative overflow-hidden flex flex-col justify-between min-h-[350px]">
+          <div>
+            <h2 class="text-lg font-bold mb-4 font-gamer text-fuchsia-400 flex items-center uppercase">
+              <i class="fa-solid fa-tags mr-2.5"></i> Ofertas de PC
+            </h2>
+
+            <!-- Precio Histórico Más Bajo -->
+            <div class="p-3.5 rounded-lg bg-fuchsia-950/10 border border-fuchsia-500/15 mb-5 flex justify-between items-center">
+              <div>
+                <span class="text-[10px] uppercase tracking-wider text-fuchsia-400 font-bold block mb-0.5">Precio Más Bajo</span>
+                <span class="text-[9px] text-gray-500">Histórico de CheapShark</span>
+              </div>
+              <span id="cheapest-historic" class="text-2xl font-black text-white font-gamer">N/D</span>
+            </div>
+
+            <!-- Listado de Ofertas Vigentes -->
+            <div class="space-y-3">
+              <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Precios del Día</h3>
+              <div id="offers-list" class="space-y-2.5">
+                <div class="text-gray-500 text-xs py-4 text-center">
+                  Buscando ofertas...
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Botón de Recomendación Gratis -->
-        <div class="mt-6 pt-4 border-t border-slate-800/60">
-          <button 
-            id="btn-recommendations" 
-            class="w-full py-3.5 px-4 rounded-lg bg-gradient-gamer text-white font-bold hover:scale-[1.01] transition-all duration-300 font-gamer text-center text-xs flex items-center justify-center gap-2 group uppercase tracking-wider shadow"
-          >
-            <span>Ver alternativas gratis</span>
-            <i class="fa-solid fa-circle-arrow-right group-hover:translate-x-1 transition-transform"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- 5. Juegos Relacionados -->
-      <div class="lg:col-span-1 glass-panel p-6 rounded-xl border border-slate-800/60 flex flex-col">
-        <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
-          <i class="fa-solid fa-gamepad mr-2.5"></i> Juegos Relacionados
-        </h2>
-        <!-- Spinner de carga para juegos relacionados -->
-        <div id="loading-related" class="py-6 flex flex-col items-center justify-center">
-          <div class="w-8 h-8 border-3 border-slate-800 rounded-full animate-spin-neon mb-2"></div>
-          <span class="text-[10px] text-gray-500 font-gamer uppercase tracking-widest">Buscando relacionados...</span>
-        </div>
-        <!-- Listado de juegos relacionados -->
-        <div id="related-list" class="hidden space-y-3.5">
-          <!-- Inyectado por JS -->
-        </div>
-      </div>
-
-      <!-- 6. Galería de Capturas -->
-      <div class="lg:col-span-2 glass-panel p-6 rounded-xl border border-slate-800/60">
-        <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
-          <i class="fa-solid fa-images mr-2.5"></i> Galería de Capturas
-        </h2>
-        <!-- Rejilla de Imágenes -->
-        <div id="screenshots-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="col-span-full text-gray-500 text-xs py-10 text-center bg-slate-900/30 rounded-xl border border-dashed border-slate-800">
-            Cargando galería de imágenes...
+          <!-- Botón de Recomendación Gratis -->
+          <div class="mt-6 pt-4 border-t border-slate-800/60">
+            <button 
+              id="btn-recommendations" 
+              class="w-full py-3.5 px-4 rounded-lg bg-gradient-gamer text-white font-bold hover:scale-[1.01] transition-all duration-300 font-gamer text-center text-xs flex items-center justify-center gap-2 group uppercase tracking-wider shadow"
+            >
+              <span>Ver alternativas gratis</span>
+              <i class="fa-solid fa-circle-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- 7. Valoraciones de la Comunidad -->
-      <div class="lg:col-span-1 glass-panel p-6 rounded-xl border border-slate-800/60">
-        <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
-          <i class="fa-solid fa-comments mr-2.5"></i> Valoraciones de la Comunidad
-        </h2>
-        <div id="comments-section" class="space-y-4">
-          <!-- Comentarios inyectados dinámicamente o estáticos estilizados -->
+        <!-- 6. Juegos Relacionados -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60 flex flex-col">
+          <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
+            <i class="fa-solid fa-gamepad mr-2.5"></i> Juegos Relacionados
+          </h2>
+          <!-- Spinner de carga para juegos relacionados -->
+          <div id="loading-related" class="py-6 flex flex-col items-center justify-center">
+            <div class="w-8 h-8 border-3 border-slate-800 rounded-full animate-spin-neon mb-2"></div>
+            <span class="text-[10px] text-gray-500 font-gamer uppercase tracking-widest">Buscando relacionados...</span>
+          </div>
+          <!-- Listado de juegos relacionados -->
+          <div id="related-list" class="hidden space-y-3.5">
+            <!-- Inyectado por JS -->
+          </div>
         </div>
+
+        <!-- 7. Valoraciones de la Comunidad -->
+        <div class="glass-panel p-6 rounded-xl border border-slate-800/60">
+          <h2 class="text-lg font-bold mb-4 font-gamer text-sky-400 flex items-center uppercase">
+            <i class="fa-solid fa-comments mr-2.5"></i> Valoraciones de la Comunidad
+          </h2>
+          <div id="comments-section" class="space-y-4">
+            <!-- Comentarios inyectados dinámicamente o estáticos estilizados -->
+          </div>
+        </div>
+
       </div>
 
     </div>
