@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const executeSearch = (title) => {
     localStorage.setItem('gamerdex_search_term', title);
     localStorage.removeItem('gamerdex_search_slug');
-    window.location.href = 'game-details.html?v=1.0.5';
+    window.location.href = 'game-details.html?v=1.0.6';
   };
 
   // Función para obtener y renderizar los juegos gratis
