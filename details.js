@@ -73,13 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cheapestHistoric = document.getElementById('cheapest-historic');
   const offersList = document.getElementById('offers-list');
 
-  // Elementos del DOM (Chatbot)
-  const chatbotToggleBtn = document.getElementById('chatbot-toggle-btn');
-  const chatbotWindow = document.getElementById('chatbot-window');
-  const chatbotCloseBtn = document.getElementById('chatbot-close-btn');
-  const chatbotForm = document.getElementById('chatbot-form');
-  const chatbotInput = document.getElementById('chatbot-input');
-  const chatbotMessages = document.getElementById('chatbot-messages');
+
 
   // Si no se encuentra ningún término de búsqueda, dar error
   if (!searchTerm && !searchSlug) {
@@ -713,126 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- LÓGICA DEL CHATBOT CON GEMINI ---
-  if (chatbotToggleBtn && chatbotWindow) {
-    chatbotToggleBtn.addEventListener('click', () => {
-      chatbotWindow.classList.toggle('hidden');
-      scrollToBottom();
-      const pings = chatbotToggleBtn.querySelectorAll('span');
-      pings.forEach(ping => ping.remove());
-    });
-  }
 
-  if (chatbotCloseBtn && chatbotWindow) {
-    chatbotCloseBtn.addEventListener('click', () => {
-      chatbotWindow.classList.add('hidden');
-    });
-  }
-
-  if (chatbotForm) {
-    chatbotForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const message = chatbotInput.value.trim();
-      if (!message) return;
-
-      appendMessage(message, 'user');
-      chatbotInput.value = "";
-      scrollToBottom();
-
-      if (GEMINI_KEY === "TU_API_KEY_AQUI" || GEMINI_KEY.trim() === "") {
-        setTimeout(() => {
-          appendMessage("❌ Error: Clave de API de Gemini no configurada. Por favor, edita la constante GEMINI_KEY al inicio de `details.js` con tu API Key de Google AI Studio.", 'bot-error');
-          scrollToBottom();
-        }, 600);
-        return;
-      }
-
-      const loadingBubble = appendLoadingBubble();
-      scrollToBottom();
-
-      const systemPrompt = `Actúas como un Asistente Gamer virtual e inteligente para el sitio GamerDex. Tu especialidad es aconsejar y responder sobre el videojuego "${currentGameContext.name}".
-Detalles técnicos de este juego:
-- Plataformas: ${currentGameContext.platforms}
-- Géneros: ${currentGameContext.genres}
-- Fecha de lanzamiento: ${currentGameContext.release}
-- Calificación Metacritic: ${currentGameContext.metacritic}
-
-Responde en español de forma entusiasta, clara y corta (máximo 3 oraciones), utilizando argot o lenguaje gamer amigable. Si el usuario te pregunta sobre temas no relacionados a los videojuegos o a este juego en particular, recuérdale con humor cibernético que solo eres un bot de videojuegos.
-
-Mensaje del usuario: ${message}`;
-
-      const requestBody = {
-        contents: [{
-          parts: [{
-            text: systemPrompt
-          }]
-        }]
-      };
-
-      fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      })
-        .then(res => {
-          if (!res.ok) throw new Error("Fallo en la comunicación con la API de Gemini");
-          return res.json();
-        })
-        .then(data => {
-          loadingBubble.remove();
-          if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts[0]) {
-            const reply = data.candidates[0].content.parts[0].text;
-            appendMessage(reply, 'bot');
-          } else {
-            throw new Error("Respuesta inválida de la IA");
-          }
-          scrollToBottom();
-        })
-        .catch(err => {
-          console.error("Chatbot Error:", err);
-          loadingBubble.remove();
-          appendMessage("👾 *El enlace de red con el asistente se ha caído.* Reintenta en unos segundos o comprueba la validez de tu clave de Gemini.", 'bot-error');
-          scrollToBottom();
-        });
-    });
-  }
-
-  function appendMessage(text, sender) {
-    if (!chatbotMessages) return;
-    const bubble = document.createElement('div');
-    if (sender === 'user') {
-      bubble.className = "chat-bubble-user p-2.5 max-w-[85%] self-end text-gray-100 shadow-sm";
-      bubble.textContent = text;
-    } else if (sender === 'bot') {
-      bubble.className = "chat-bubble-bot p-2.5 max-w-[85%] self-start text-gray-255 shadow-sm leading-relaxed";
-      bubble.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
-    } else {
-      bubble.className = "p-2.5 max-w-[85%] self-start rounded-xl bg-red-950/20 border border-red-500/10 text-red-300 text-[10px] shadow-sm";
-      bubble.innerHTML = text;
-    }
-    chatbotMessages.appendChild(bubble);
-  }
-
-  function appendLoadingBubble() {
-    if (!chatbotMessages) return null;
-    const bubble = document.createElement('div');
-    bubble.className = "chat-bubble-bot p-2.5 max-w-[85%] self-start text-gray-400 flex items-center gap-1 shadow-sm";
-    bubble.id = "chatbot-loading";
-    bubble.innerHTML = `
-      <span class="w-1 h-1 bg-fuchsia-400 rounded-full animate-bounce"></span>
-      <span class="w-1 h-1 bg-fuchsia-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-      <span class="w-1 h-1 bg-fuchsia-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
-      <span class="text-[10px] ml-1 font-semibold uppercase tracking-wider text-gray-500">Pensando...</span>
-    `;
-    chatbotMessages.appendChild(bubble);
-    return bubble;
-  }
-
-  function scrollToBottom() {
-    if (chatbotMessages) chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-  }
 
   if (btnRecommendations) {
     btnRecommendations.addEventListener('click', () => {

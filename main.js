@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const item = document.createElement('div');
       item.className = "autocomplete-item flex items-center gap-3 p-3 cursor-pointer text-xs text-gray-300";
       item.innerHTML = `
-        <div class="w-7 h-7 rounded bg-slate-905 border border-slate-800 flex items-center justify-center text-sky-400">
+        <div class="w-7 h-7 rounded bg-slate-900 border border-slate-800 flex items-center justify-center text-sky-400">
           <i class="fa-solid fa-arrow-trend-up"></i>
         </div>
         <div class="flex-grow min-w-0">

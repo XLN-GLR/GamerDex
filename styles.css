@@ -148,18 +148,7 @@ h1, h2, h3, .font-gamer {
   border-left: 3px solid var(--accent-cyan);
 }
 
-/* Chatbot */
-.chat-bubble-user {
-  background: rgba(14, 165, 233, 0.15);
-  border: 1px solid rgba(14, 165, 233, 0.2);
-  border-radius: 14px 14px 2px 14px;
-}
 
-.chat-bubble-bot {
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 14px 14px 14px 2px;
-}
 
 /* Aspect Ratio de Video */
 .video-container {
