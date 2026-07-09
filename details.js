@@ -161,8 +161,43 @@ document.addEventListener('DOMContentLoaded', () => {
           return null;
         }
 
-        // Buscar correspondencia exacta en nombre
+        // Buscar correspondencia exacta o filtrada en CheapShark (evitando DLCs, soundtracks o upgrades que distorsionen los precios de Steam)
         let cheapGame = cheapSharkGames.find(g => g.external.toLowerCase() === currentGameContext.name.toLowerCase());
+        
+        if (!cheapGame) {
+          const rawgNameClean = currentGameContext.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+          cheapGame = cheapSharkGames.find(g => {
+            const csNameClean = g.external.toLowerCase().replace(/[^a-z0-9]/g, '');
+            return csNameClean === rawgNameClean;
+          });
+        }
+        
+        if (!cheapGame) {
+          const rawgNameClean = currentGameContext.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+          cheapGame = cheapSharkGames.find(g => {
+            const csNameClean = g.external.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const isDlc = g.external.toLowerCase().includes('dlc') || 
+                          g.external.toLowerCase().includes('pack') || 
+                          g.external.toLowerCase().includes('soundtrack') || 
+                          g.external.toLowerCase().includes('expansion') || 
+                          g.external.toLowerCase().includes('upgrade') ||
+                          g.external.toLowerCase().includes('season pass');
+            return csNameClean.includes(rawgNameClean) && !isDlc;
+          });
+        }
+        
+        if (!cheapGame) {
+          cheapGame = cheapSharkGames.find(g => {
+            const isDlc = g.external.toLowerCase().includes('dlc') || 
+                          g.external.toLowerCase().includes('pack') || 
+                          g.external.toLowerCase().includes('soundtrack') || 
+                          g.external.toLowerCase().includes('expansion') || 
+                          g.external.toLowerCase().includes('upgrade') ||
+                          g.external.toLowerCase().includes('season pass');
+            return !isDlc;
+          });
+        }
+        
         if (!cheapGame) {
           cheapGame = cheapSharkGames[0];
         }
